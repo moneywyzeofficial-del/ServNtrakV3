@@ -1,0 +1,357 @@
+1. Lógica de geração — adicionar a server/storage.ts
+Adiciona este tipo ao shared/schema.ts no final dos tipos:
+typescriptexport type AppointmentPreview = {
+  clientId: number;
+  clientName: string;
+  date: string; // ISO date string YYYY-MM-DD
+  type: string; // 'Garden' | 'Pool' | 'Jacuzzi'
+  reason: string; // ex: "Jardim sazonal — 2x/mês"
+};
+Adiciona à interface IStorage:
+typescriptgenerateAppointmentPreview(userId: string, year: number, month: number): Promise<AppointmentPreview[]>;
+confirmAppointments(userId: string, appointments: AppointmentPreview[]): Promise<number>;
+Adiciona à classe DatabaseStorage:
+typescriptasync generateAppointmentPreview(userId: string, year: number, month: number): Promise<AppointmentPreview[]> {
+  const userClients = await this.getClients(userId);
+  const existingAppointments = await db
+    .select()
+    .from(appointments)
+    .where(eq(appointments.userId, userId));
+
+  const isHighSeason = month >= 4 && month <= 9; // Abril a Setembro
+  const previews: AppointmentPreview[] = [];
+
+  // Distribui N visitas uniformemente ao longo do mês
+  const getDaysForVisits = (count: number, year: number, month: number): string[] => {
+    const daysInMonth = new Date(year, month, 0).getDate();
+    if (count === 1) return [formatDate(year, month, Math.round(daysInMonth / 2))];
+    if (count === 2) return [formatDate(year, month, 8), formatDate(year, month, 22)];
+    if (count === 4) return [7, 14, 21, 28].map(d => formatDate(year, month, d));
+    return [];
+  };
+
+  const formatDate = (y: number, m: number, d: number): string => {
+    return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+  };
+
+  // Verifica se já existe agendamento para cliente+tipo neste mês
+  const hasExisting = (clientId: number, type: string): boolean => {
+    return existingAppointments.some(a => {
+      const d = new Date(a.date);
+      return (
+        a.clientId === clientId &&
+        a.type === type &&
+        d.getFullYear() === year &&
+        d.getMonth() + 1 === month
+      );
+    });
+  };
+
+  for (const client of userClients) {
+    // JARDIM
+    if (client.hasGarden && client.gardenVisitFrequency !== 'on_demand') {
+      if (!hasExisting(client.id, 'Garden')) {
+        let count = 0;
+        let reason = '';
+        if (client.gardenVisitFrequency === 'once_monthly') {
+          count = 1;
+          reason = 'Jardim — acordo especial 1x/mês';
+        } else {
+          // seasonal
+          count = isHighSeason ? 2 : 1;
+          reason = isHighSeason ? 'Jardim sazonal — época alta 2x/mês' : 'Jardim sazonal — época baixa 1x/mês';
+        }
+        const days = getDaysForVisits(count, year, month);
+        days.forEach(date => {
+          previews.push({ clientId: client.id, clientName: client.name, date, type: 'Garden', reason });
+        });
+      }
+    }
+
+    // PISCINA
+    if (client.hasPool && client.poolVisitFrequency !== 'on_demand') {
+      if (!hasExisting(client.id, 'Pool')) {
+        let count = 0;
+        let reason = '';
+        if (client.poolVisitFrequency === 'once_monthly') {
+          count = 2;
+          reason = 'Piscina — 2x/mês';
+        } else {
+          count = isHighSeason ? 4 : 2;
+          reason = isHighSeason ? 'Piscina sazonal — época alta 4x/mês' : 'Piscina sazonal — época baixa 2x/mês';
+        }
+        const days = getDaysForVisits(count, year, month);
+        days.forEach(date => {
+          previews.push({ clientId: client.id, clientName: client.name, date, type: 'Pool', reason });
+        });
+      }
+    }
+
+    // JACUZZI
+    if (client.hasJacuzzi && client.jacuzziVisitFrequency !== 'on_demand') {
+      if (!hasExisting(client.id, 'Jacuzzi')) {
+        let count = 0;
+        let reason = '';
+        if (client.jacuzziVisitFrequency === 'once_monthly') {
+          count = 2;
+          reason = 'Jacuzzi — 2x/mês';
+        } else {
+          count = isHighSeason ? 4 : 2;
+          reason = isHighSeason ? 'Jacuzzi sazonal — época alta 4x/mês' : 'Jacuzzi sazonal — época baixa 2x/mês';
+        }
+        const days = getDaysForVisits(count, year, month);
+        days.forEach(date => {
+          previews.push({ clientId: client.id, clientName: client.name, date, type: 'Jacuzzi', reason });
+        });
+      }
+    }
+  }
+
+  return previews.sort((a, b) => a.date.localeCompare(b.date));
+}
+
+async confirmAppointments(userId: string, appts: AppointmentPreview[]): Promise<number> {
+  let created = 0;
+  for (const appt of appts) {
+    const date = new Date(appt.date);
+    date.setHours(0, 0, 0, 0);
+    await db.insert(appointments).values({
+      userId,
+      clientId: appt.clientId,
+      date,
+      type: appt.type,
+      notes: appt.reason,
+      isCompleted: false,
+    });
+    created++;
+  }
+  return created;
+}
+
+2. Endpoints — adicionar a server/routes.ts
+Na secção // --- Appointments ---, adiciona após o app.delete:
+typescript// Preview de agendamentos automáticos
+app.post("/api/appointments/generate-preview", requireAuth, async (req, res) => {
+  try {
+    const { year, month } = z.object({
+      year: z.number().int().min(2020).max(2100),
+      month: z.number().int().min(1).max(12),
+    }).parse(req.body);
+    const userId = req.user!.id;
+    const preview = await storage.generateAppointmentPreview(userId, year, month);
+    res.json(preview);
+  } catch (err) {
+    if (err instanceof z.ZodError) {
+      return res.status(400).json({ message: err.errors[0].message });
+    }
+    throw err;
+  }
+});
+
+// Confirmar e criar agendamentos gerados
+app.post("/api/appointments/generate-confirm", requireAuth, async (req, res) => {
+  try {
+    const { appointments: appts } = z.object({
+      appointments: z.array(z.object({
+        clientId: z.number(),
+        clientName: z.string(),
+        date: z.string(),
+        type: z.string(),
+        reason: z.string(),
+      }))
+    }).parse(req.body);
+    const userId = req.user!.id;
+    const count = await storage.confirmAppointments(userId, appts);
+    res.json({ created: count });
+  } catch (err) {
+    if (err instanceof z.ZodError) {
+      return res.status(400).json({ message: err.errors[0].message });
+    }
+    throw err;
+  }
+});
+
+3. Modal de geração no Calendar.tsx
+Adiciona estes imports ao topo, junto aos existentes:
+typescriptimport { useMutation } from "@tanstack/react-query";
+import { Wand2, Trash2, CheckCheck } from "lucide-react";
+import { format as formatDate, parseISO } from "date-fns";
+import type { AppointmentPreview } from "@shared/schema";
+Adiciona estes estados logo após os existentes no componente:
+typescriptconst [generateOpen, setGenerateOpen] = useState(false);
+const [previewMonth, setPreviewMonth] = useState(new Date().getMonth() + 1);
+const [previewYear, setPreviewYear] = useState(new Date().getFullYear());
+const [previewList, setPreviewList] = useState<AppointmentPreview[]>([]);
+const [removedIndexes, setRemovedIndexes] = useState<Set<number>>(new Set());
+const queryClient = useQueryClient();
+Adiciona estas duas mutations após a createApt:
+typescriptconst generatePreviewMutation = useMutation({
+  mutationFn: async ({ year, month }: { year: number; month: number }) => {
+    const res = await fetch("/api/appointments/generate-preview", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ year, month }),
+    });
+    if (!res.ok) throw new Error("Erro ao gerar preview");
+    return res.json() as Promise<AppointmentPreview[]>;
+  },
+  onSuccess: (data) => {
+    setPreviewList(data);
+    setRemovedIndexes(new Set());
+  },
+  onError: () => toast({ title: "Erro", description: "Não foi possível gerar o preview.", variant: "destructive" }),
+});
+
+const confirmGenerateMutation = useMutation({
+  mutationFn: async (appts: AppointmentPreview[]) => {
+    const res = await fetch("/api/appointments/generate-confirm", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ appointments: appts }),
+    });
+    if (!res.ok) throw new Error("Erro ao confirmar");
+    return res.json();
+  },
+  onSuccess: (data) => {
+    queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });
+    setGenerateOpen(false);
+    setPreviewList([]);
+    toast({ title: "Agendamentos criados", description: `${data.created} agendamento(s) adicionados.` });
+  },
+  onError: () => toast({ title: "Erro", description: "Não foi possível criar os agendamentos.", variant: "destructive" }),
+});
+No JSX, adiciona o botão de geração junto ao título da página, logo após o <BackButton />:
+tsx<Button
+  variant="outline"
+  size="sm"
+  className="gap-2"
+  onClick={() => setGenerateOpen(true)}
+  data-testid="button-generate-appointments"
+>
+  <Wand2 className="w-4 h-4" />
+  Gerar Mês
+</Button>
+Adiciona o modal de geração antes do <Dialog open={dialogOpen}...> existente:
+tsx<Dialog open={generateOpen} onOpenChange={setGenerateOpen}>
+  <DialogContent className="rounded-2xl sm:max-w-md max-h-[85vh] flex flex-col">
+    <DialogHeader>
+      <DialogTitle>Gerar Agendamentos</DialogTitle>
+    </DialogHeader>
+
+    <div className="flex gap-3 items-end">
+      <div className="flex-1 space-y-1.5">
+        <label className="text-sm font-medium">Mês</label>
+        <Select
+          value={previewMonth.toString()}
+          onValueChange={(v) => setPreviewMonth(Number(v))}
+        >
+          <SelectTrigger className="rounded-xl">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"].map((m, i) => (
+              <SelectItem key={i + 1} value={(i + 1).toString()}>{m}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="w-24 space-y-1.5">
+        <label className="text-sm font-medium">Ano</label>
+        <Select
+          value={previewYear.toString()}
+          onValueChange={(v) => setPreviewYear(Number(v))}
+        >
+          <SelectTrigger className="rounded-xl">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {[new Date().getFullYear(), new Date().getFullYear() + 1].map(y => (
+              <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <Button
+        onClick={() => generatePreviewMutation.mutate({ year: previewYear, month: previewMonth })}
+        disabled={generatePreviewMutation.isPending}
+        className="shrink-0"
+      >
+        {generatePreviewMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Pré-visualizar"}
+      </Button>
+    </div>
+
+    {previewList.length > 0 && (
+      <>
+        <p className="text-xs text-muted-foreground mt-1">
+          {previewList.length - removedIndexes.size} agendamento(s) para criar.
+          Clica em <Trash2 className="w-3 h-3 inline" /> para remover um agendamento da lista.
+        </p>
+
+        <div className="flex-1 overflow-y-auto space-y-2 pr-1">
+          {previewList.map((appt, idx) => {
+            const removed = removedIndexes.has(idx);
+            return (
+              <div
+                key={idx}
+                className={`flex items-center gap-3 p-3 rounded-xl border transition-opacity ${
+                  removed ? "opacity-30 line-through" : ""
+                } ${
+                  appt.type === "Garden" ? "border-green-200 bg-green-50" :
+                  appt.type === "Pool" ? "border-blue-200 bg-blue-50" :
+                  "border-cyan-200 bg-cyan-50"
+                }`}
+              >
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{appt.clientName}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {formatDate(parseISO(appt.date), "d 'de' MMMM", { locale: pt })} — {
+                      appt.type === 'Garden' ? 'Jardim' :
+                      appt.type === 'Pool' ? 'Piscina' : 'Jacuzzi'
+                    }
+                  </p>
+                  <p className="text-xs text-muted-foreground/70 truncate">{appt.reason}</p>
+                </div>
+                <button
+                  onClick={() => {
+                    const next = new Set(removedIndexes);
+                    next.has(idx) ? next.delete(idx) : next.add(idx);
+                    setRemovedIndexes(next);
+                  }}
+                  className="text-muted-foreground hover:text-destructive transition-colors shrink-0"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            );
+          })}
+        </div>
+
+        <Button
+          className="w-full gap-2 mt-2"
+          disabled={confirmGenerateMutation.isPending || previewList.length === removedIndexes.size}
+          onClick={() => {
+            const toCreate = previewList.filter((_, i) => !removedIndexes.has(i));
+            confirmGenerateMutation.mutate(toCreate);
+          }}
+        >
+          {confirmGenerateMutation.isPending ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <CheckCheck className="w-4 h-4" />
+          )}
+          Confirmar {previewList.length - removedIndexes.size} agendamento(s)
+        </Button>
+      </>
+    )}
+
+    {previewList.length === 0 && !generatePreviewMutation.isPending && generatePreviewMutation.isSuccess && (
+      <p className="text-sm text-muted-foreground text-center py-4">
+        Todos os clientes já têm agendamentos para este mês.
+      </p>
+    )}
+  </DialogContent>
+</Dialog>

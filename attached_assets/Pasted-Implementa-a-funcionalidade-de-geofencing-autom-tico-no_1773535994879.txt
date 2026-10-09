@@ -1,0 +1,379 @@
+Implementa a funcionalidade de geofencing automático no ServNtrak.
+
+## OBJETIVO
+Quando o utilizador chega ao local de um cliente (detectado por GPS), a visita inicia automaticamente. Quando sai, a visita termina e aparece um card de confirmação com a duração. Sem interação manual obrigatória.
+
+---
+
+## FICHEIROS A CRIAR
+
+### 1. `client/src/hooks/useGeofencing.ts`
+
+Hook React com TypeScript completo:
+```typescript
+import { useEffect, useRef, useCallback, useState } from "react";
+
+export interface ClienteComLocalizacao {
+  id: number;
+  nome: string;
+  latitude: number;
+  longitude: number;
+  agendamentoId?: number;
+}
+
+export interface EventoVisita {
+  clienteId: number;
+  clienteNome: string;
+  agendamentoId?: number;
+  tipo: "entrada" | "saida";
+  timestamp: Date;
+  coordenadas: { latitude: number; longitude: number };
+}
+
+export interface VisitaAtiva {
+  clienteId: number;
+  clienteNome: string;
+  agendamentoId?: number;
+  inicio: Date;
+  coordenadasEntrada: { latitude: number; longitude: number };
+}
+
+export interface VisitaConcluida {
+  clienteId: number;
+  clienteNome: string;
+  agendamentoId?: number;
+  inicio: Date;
+  fim: Date;
+  duracaoMinutos: number;
+}
+
+export interface OpcoesGeofencing {
+  raioMetros?: number;
+  intervaloMs?: number;
+  onEntrada?: (evento: EventoVisita) => void;
+  onSaida?: (visita: VisitaConcluida) => void;
+  onErro?: (erro: GeolocationPositionError) => void;
+}
+
+export interface EstadoGeofencing {
+  ativo: boolean;
+  posicaoAtual: GeolocationCoordinates | null;
+  visitaAtiva: VisitaAtiva | null;
+  ultimoUpdate: Date | null;
+  erro: string | null;
+  iniciar: () => void;
+  parar: () => void;
+  confirmarVisita: (visita: VisitaConcluida) => void;
+  visitasPendentesConfirmacao: VisitaConcluida[];
+}
+
+function calcularDistanciaMetros(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371000;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+export function useGeofencing(clientes: ClienteComLocalizacao[], opcoes: OpcoesGeofencing = {}): EstadoGeofencing {
+  const { raioMetros = 75, intervaloMs = 30_000, onEntrada, onSaida, onErro } = opcoes;
+
+  const [ativo, setAtivo] = useState(false);
+  const [posicaoAtual, setPosicaoAtual] = useState<GeolocationCoordinates | null>(null);
+  const [visitaAtiva, setVisitaAtiva] = useState<VisitaAtiva | null>(null);
+  const [ultimoUpdate, setUltimoUpdate] = useState<Date | null>(null);
+  const [erro, setErro] = useState<string | null>(null);
+  const [visitasPendentesConfirmacao, setVisitasPendentesConfirmacao] = useState<VisitaConcluida[]>([]);
+
+  const visitaAtivaRef = useRef<VisitaAtiva | null>(null);
+  const clientesRef = useRef<ClienteComLocalizacao[]>(clientes);
+  const watchIdRef = useRef<number | null>(null);
+  const intervaloRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => { visitaAtivaRef.current = visitaAtiva; }, [visitaAtiva]);
+  useEffect(() => { clientesRef.current = clientes; }, [clientes]);
+
+  const processarPosicao = useCallback((posicao: GeolocationPosition) => {
+    const { latitude, longitude } = posicao.coords;
+    setPosicaoAtual(posicao.coords);
+    setUltimoUpdate(new Date());
+    setErro(null);
+
+    const clientesDoDia = clientesRef.current.filter(c => c.agendamentoId !== undefined);
+
+    let clienteMaisProximo: ClienteComLocalizacao | null = null;
+    let menorDistancia = Infinity;
+
+    for (const cliente of clientesDoDia) {
+      const distancia = calcularDistanciaMetros(latitude, longitude, cliente.latitude, cliente.longitude);
+      if (distancia <= raioMetros && distancia < menorDistancia) {
+        menorDistancia = distancia;
+        clienteMaisProximo = cliente;
+      }
+    }
+
+    const visitaCorrente = visitaAtivaRef.current;
+
+    if (clienteMaisProximo) {
+      if (!visitaCorrente) {
+        const novaVisita: VisitaAtiva = {
+          clienteId: clienteMaisProximo.id,
+          clienteNome: clienteMaisProximo.nome,
+          agendamentoId: clienteMaisProximo.agendamentoId,
+          inicio: new Date(),
+          coordenadasEntrada: { latitude, longitude },
+        };
+        setVisitaAtiva(novaVisita);
+        onEntrada?.({
+          clienteId: clienteMaisProximo.id,
+          clienteNome: clienteMaisProximo.nome,
+          agendamentoId: clienteMaisProximo.agendamentoId,
+          tipo: "entrada",
+          timestamp: novaVisita.inicio,
+          coordenadas: { latitude, longitude },
+        });
+      }
+    } else {
+      if (visitaCorrente) {
+        const fim = new Date();
+        const duracaoMinutos = Math.round((fim.getTime() - visitaCorrente.inicio.getTime()) / 60_000);
+        if (duracaoMinutos >= 5) {
+          const visitaConcluida: VisitaConcluida = {
+            clienteId: visitaCorrente.clienteId,
+            clienteNome: visitaCorrente.clienteNome,
+            agendamentoId: visitaCorrente.agendamentoId,
+            inicio: visitaCorrente.inicio,
+            fim,
+            duracaoMinutos,
+          };
+          setVisitasPendentesConfirmacao(prev => [...prev, visitaConcluida]);
+          onSaida?.(visitaConcluida);
+        }
+        setVisitaAtiva(null);
+      }
+    }
+  }, [raioMetros, onEntrada, onSaida]);
+
+  const processarErro = useCallback((err: GeolocationPositionError) => {
+    const mensagens: Record<number, string> = {
+      1: "Permissão de localização negada. Ativa o GPS nas definições.",
+      2: "Posição não disponível. Verifica o sinal GPS.",
+      3: "Timeout a obter localização.",
+    };
+    setErro(mensagens[err.code] ?? "Erro desconhecido de GPS.");
+    onErro?.(err);
+  }, [onErro]);
+
+  const iniciar = useCallback(() => {
+    if (!navigator.geolocation) { setErro("GPS não suportado neste dispositivo."); return; }
+    setAtivo(true);
+    setErro(null);
+    watchIdRef.current = navigator.geolocation.watchPosition(processarPosicao, processarErro, {
+      enableHighAccuracy: true,
+      maximumAge: 15_000,
+      timeout: 20_000,
+    });
+    intervaloRef.current = setInterval(() => {
+      navigator.geolocation.getCurrentPosition(processarPosicao, processarErro, {
+        enableHighAccuracy: true,
+        timeout: 10_000,
+      });
+    }, intervaloMs);
+  }, [processarPosicao, processarErro, intervaloMs]);
+
+  const parar = useCallback(() => {
+    if (watchIdRef.current !== null) { navigator.geolocation.clearWatch(watchIdRef.current); watchIdRef.current = null; }
+    if (intervaloRef.current !== null) { clearInterval(intervaloRef.current); intervaloRef.current = null; }
+    setAtivo(false);
+    setVisitaAtiva(null);
+  }, []);
+
+  useEffect(() => { return () => { parar(); }; }, [parar]);
+
+  const confirmarVisita = useCallback((visita: VisitaConcluida) => {
+    setVisitasPendentesConfirmacao(prev =>
+      prev.filter(v => !(v.clienteId === visita.clienteId && v.inicio.getTime() === visita.inicio.getTime()))
+    );
+  }, []);
+
+  return { ativo, posicaoAtual, visitaAtiva, ultimoUpdate, erro, iniciar, parar, confirmarVisita, visitasPendentesConfirmacao };
+}
+```
+
+---
+
+### 2. Backend — novo endpoint em `server/routes.ts` (ou onde estão as rotas)
+
+Adicionar estas duas rotas:
+```typescript
+// POST /api/visitas/entrada — regista chegada automática
+app.post("/api/visitas/entrada", async (req, res) => {
+  const { agendamentoId, clienteId, timestamp } = req.body;
+  // Guardar na tabela serviceVisits com fonte = 'geofencing'
+  const resultado = await db.insert(serviceVisits).values({
+    appointmentId: agendamentoId,
+    clientId: clienteId,
+    startTime: new Date(timestamp),
+    source: "geofencing",
+    status: "em_curso",
+  }).returning();
+  res.json(resultado[0]);
+});
+
+// POST /api/visitas — confirma e fecha a visita
+app.post("/api/visitas", async (req, res) => {
+  const { agendamentoId, clienteId, inicio, fim, duracaoMinutos, fonte } = req.body;
+  const resultado = await db.insert(serviceVisits).values({
+    appointmentId: agendamentoId,
+    clientId: clienteId,
+    startTime: new Date(inicio),
+    endTime: new Date(fim),
+    durationMinutes: duracaoMinutos,
+    source: fonte ?? "geofencing",
+    status: "concluida",
+  }).returning();
+  // Marcar agendamento como concluído
+  if (agendamentoId) {
+    await db.update(appointments)
+      .set({ completed: true })
+      .where(eq(appointments.id, agendamentoId));
+  }
+  res.json(resultado[0]);
+});
+```
+
+Adaptar os nomes das colunas ao schema existente do projeto (tabela `serviceVisits` já existe).
+
+---
+
+### 3. Base de dados — adicionar colunas à tabela `serviceVisits`
+
+No schema (provavelmente `shared/schema.ts`), adicionar à tabela `serviceVisits`:
+```typescript
+source: text("source").default("manual"),         // "manual" | "geofencing"
+status: text("status").default("concluida"),       // "em_curso" | "concluida"
+```
+
+Correr a migração com `db:push` ou o método usado no projeto.
+
+---
+
+### 4. Integração na página Home (`client/src/pages/home.tsx` ou equivalente)
+
+No componente Home, importar o hook e os agendamentos do dia. Os agendamentos já devem ser carregados — apenas mapeá-los para o formato `ClienteComLocalizacao`.
+
+Adicionar no topo do componente:
+```typescript
+import { useGeofencing, VisitaConcluida, ClienteComLocalizacao } from "@/hooks/useGeofencing";
+
+// Dentro do componente, após carregar os agendamentos do dia:
+const clientesGeofencing: ClienteComLocalizacao[] = agendamentosHoje.map(ag => ({
+  id: ag.client.id,
+  nome: ag.client.name,
+  latitude: parseFloat(ag.client.latitude),
+  longitude: parseFloat(ag.client.longitude),
+  agendamentoId: ag.id,
+})).filter(c => c.latitude && c.longitude); // só clientes com GPS definido
+
+const geo = useGeofencing(clientesGeofencing, {
+  raioMetros: 75,
+  intervaloMs: 30_000,
+  onEntrada: async (evento) => {
+    await fetch("/api/visitas/entrada", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        agendamentoId: evento.agendamentoId,
+        clienteId: evento.clienteId,
+        timestamp: evento.timestamp.toISOString(),
+      }),
+    });
+  },
+  onSaida: (visita) => {
+    // visita vai automaticamente para geo.visitasPendentesConfirmacao
+    console.log(`Visita concluída: ${visita.clienteNome} — ${visita.duracaoMinutos} min`);
+  },
+});
+
+const guardarVisita = async (visita: VisitaConcluida, duracaoAjustada?: number) => {
+  await fetch("/api/visitas", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      agendamentoId: visita.agendamentoId,
+      clienteId: visita.clienteId,
+      inicio: visita.inicio.toISOString(),
+      fim: visita.fim.toISOString(),
+      duracaoMinutos: duracaoAjustada ?? visita.duracaoMinutos,
+      fonte: "geofencing",
+    }),
+  });
+  geo.confirmarVisita(visita);
+};
+```
+
+---
+
+### 5. UI a adicionar na página Home
+
+Inserir estes elementos no JSX da Home, de forma integrada com o design existente:
+
+**A) Botão de ativar tracking** — junto às ações rápidas já existentes:
+```tsx
+<button onClick={geo.ativo ? geo.parar : geo.iniciar} className="...">
+  {geo.ativo ? "⏸ Pausar tracking" : "📍 Iniciar tracking"}
+</button>
+```
+
+**B) Card de visita em curso** — se `geo.visitaAtiva` não for null, mostrar abaixo do card "A Seguir":
+```tsx
+{geo.visitaAtiva && (
+  <div className="card">
+    <p>📍 Em visita: <strong>{geo.visitaAtiva.clienteNome}</strong></p>
+    <p>Início: {geo.visitaAtiva.inicio.toLocaleTimeString("pt-PT")}</p>
+  </div>
+)}
+```
+
+**C) Cards de confirmação** — para cada visita em `geo.visitasPendentesConfirmacao`:
+```tsx
+{geo.visitasPendentesConfirmacao.map(visita => (
+  <div key={`${visita.clienteId}-${visita.inicio.getTime()}`} className="card">
+    <p>✅ Visita concluída — confirmar?</p>
+    <p><strong>{visita.clienteNome}</strong></p>
+    <p>
+      {visita.inicio.toLocaleTimeString("pt-PT")} → {visita.fim.toLocaleTimeString("pt-PT")}
+      {" "}({visita.duracaoMinutos} min)
+    </p>
+    <button onClick={() => guardarVisita(visita)}>Confirmar</button>
+    <button onClick={() => {
+      const ajuste = prompt("Duração real (minutos):", String(visita.duracaoMinutos));
+      if (ajuste) guardarVisita(visita, parseInt(ajuste));
+    }}>Ajustar</button>
+    <button onClick={() => geo.confirmarVisita(visita)}>Ignorar</button>
+  </div>
+))}
+```
+
+**D) Alerta de erro GPS** — se `geo.erro` não for null:
+```tsx
+{geo.erro && (
+  <div className="alert alert-warning">{geo.erro}</div>
+)}
+```
+
+---
+
+## REGRAS IMPORTANTES
+
+- Manter o estilo visual existente da app — usar as classes CSS/Tailwind já usadas nos outros cards da Home
+- Não alterar nenhuma funcionalidade existente — apenas adicionar
+- O geofencing só considera clientes com `latitude` e `longitude` preenchidos na base de dados
+- O geofencing só considera agendamentos do dia atual
+- Visitas com menos de 5 minutos são descartadas automaticamente (falsos positivos ao passar perto de um cliente sem parar)
+- O campo `source` na tabela `serviceVisits` distingue visitas registadas manualmente das automáticas
+- Adaptar nomes de colunas e tabelas ao schema real do projeto — não inventar nomes novos

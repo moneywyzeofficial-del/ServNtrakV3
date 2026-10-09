@@ -1,0 +1,44 @@
+Tarefa: Resolver inconsistência de paleta de cores no ServNtrak - substituir todas as referências a laranja/amber por verde (primary).
+
+CONTEXTO:
+A app tem um conflito: usa verde (#2D6A4F) como primary na raiz mas laranja/amber em vários componentes, criando aspeto amador e inconsistente.
+
+OBJECTIVO:
+Usar APENAS a paleta verde existente em TODOS os componentes. Eliminar completamente laranja/amber.
+
+FICHEIROS A MODIFICAR:
+
+1. client/src/components/BottomNav.tsx
+   - Substituir "bg-orange-50" por "bg-primary/10"
+   - Substituir "hover:bg-orange-50/40" por "hover:bg-primary/5"
+   - Substituir "text-amber-500" por "text-primary"
+   - Substituir "border-orange-100/60" por "border-border"
+   - Substituir "text-[#9B7B5E]" por "text-muted-foreground"
+   - Substituir "shadow-[0_-10px_40px_rgba(200,120,50,0.08)]" por "shadow-[0_-10px_40px_hsl(var(--primary)/0.08)]"
+
+2. Procurar e substituir em TODA a codebase client/src/:
+   - "orange-" → verificar contexto e substituir por primary/secondary/muted conforme apropriado
+   - "amber-" → verificar contexto e substituir por primary/secondary/muted conforme apropriado
+   - Cores hexadecimais hardcoded → substituir por CSS variables
+
+3. Verificar index.css:
+   - Confirmar que --primary: 152 55% 28% (verde #2D6A4F) está correcto
+   - Confirmar que --secondary: 152 35% 92% (verde claro) está correcto
+   - Confirmar que --accent: 200 75% 50% (azul) está correcto
+
+REGRAS:
+- NUNCA usar cores hardcoded (hex, rgb, hsl directo)
+- SEMPRE usar CSS variables: primary, secondary, muted, accent, destructive
+- Se tiver dúvida entre primary/secondary/muted, usar primary para elementos activos, secondary para backgrounds suaves, muted para texto secundário
+- Manter dark mode funcional
+
+VALIDAÇÃO:
+Após mudanças, procurar em client/src/ por:
+- "orange" (não deve existir excepto em comentários)
+- "amber" (não deve existir excepto em comentários)  
+- "#" seguido de 6 caracteres hex (não deve existir cores hardcoded)
+
+Executar e reportar:
+1. Lista de ficheiros modificados
+2. Número de substituições feitas
+3. Resultado da validação (quantas referências a orange/amber/hex restam)

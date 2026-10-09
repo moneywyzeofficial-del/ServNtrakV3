@@ -1,0 +1,178 @@
+Tarefa: Implementar melhorias de design, acessibilidade e sistema de temas no ServNtrak
+
+CONTEXTO:
+Após resolver a inconsistência de cores (verde agora consistente), precisamos de 3 melhorias críticas: acessibilidade, refatoração do formulário de clientes, e preparar sistema de temas para escolha de paleta no futuro.
+
+═══════════════════════════════════════════════════════════════════
+PARTE 1: MELHORIAS DE ACESSIBILIDADE
+═══════════════════════════════════════════════════════════════════
+
+1.1 CONTRASTE DE CORES
+
+Ficheiro: client/src/index.css
+Modificar variáveis para garantir contraste WCAG AA (mínimo 4.5:1):
+
+--muted-foreground: 220 15% 40%; /* Antes: 220 10% 50% - aumentar saturação para melhor contraste */
+
+1.2 ARIA LABELS EM ÍCONES
+
+Procurar em TODOS os componentes client/src/components/ e client/src/pages/:
+
+Padrão ANTES:
+<Icon className="w-5 h-5" />
+
+Padrão DEPOIS:
+<Icon className="w-5 h-5" aria-label="Descrição" role="img" />
+
+Aplicar especialmente em:
+- BottomNav.tsx (ícones de navegação)
+- Home.tsx (ícones de quick actions)
+- Clients.tsx (ícones de serviços)
+
+1.3 FOCUS STATES MELHORADOS
+
+Ficheiro: client/src/index.css
+Substituir TODAS as ocorrências de:
+
+focus-visible:ring-ring/50
+
+Por:
+
+focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2
+
+Isto aplica-se a:
+- .input-field
+- Todos os componentes ui/ (Button, Input, Select, etc.)
+
+═══════════════════════════════════════════════════════════════════
+PARTE 2: REFATORAR CreateClientDialog (WIZARD MULTI-STEP)
+═══════════════════════════════════════════════════════════════════
+
+2.1 CRIAR NOVO COMPONENTE WIZARD
+
+Ficheiro NOVO: client/src/components/CreateClientWizard.tsx
+
+Estrutura:
+- 5 steps: Básico → Serviços → Faturação → Detalhes Técnicos → Localização
+- Navegação com botões "Anterior" / "Próximo" / "Finalizar"
+- Validação por step (não deixa avançar se step inválido)
+- Progresso visual (1/5, 2/5, etc.)
+- Dados persistem entre steps (useState central)
+
+Step 1 - Informação Básica:
+- name (obrigatório)
+- phone
+- email
+- address
+
+Step 2 - Serviços e Frequência:
+- hasGarden, hasPool, hasJacuzzi (checkboxes)
+- gardenVisitFrequency, poolVisitFrequency, jacuzziVisitFrequency (selects condicionais)
+- serviceDurationMinutes
+
+Step 3 - Faturação:
+- billingType (radio: monthly, hourly, per_visit)
+- monthlyRate / hourlyRate / perVisitRate (input condicional baseado em billingType)
+- paymentMethod
+- scheduledTransferDay (se monthly + transfer bancária)
+
+Step 4 - Detalhes Técnicos (apenas se hasPool ou hasJacuzzi):
+- Se hasPool: poolLength, poolWidth, poolMinDepth, poolMaxDepth
+- Se hasJacuzzi: jacuzziLength, jacuzziWidth, jacuzziDepth
+
+Step 5 - Localização:
+- MapPicker (latitude, longitude)
+- Mostrar resumo dos dados antes de submeter
+
+Componente deve:
+- Usar mesma validação (zodResolver com insertClientSchema)
+- Usar mesmo hook useCreateClient
+- Substituir CreateClientDialog.tsx COMPLETAMENTE
+
+2.2 ACTUALIZAR REFERÊNCIAS
+
+Ficheiro: client/src/pages/Clients.tsx
+Substituir import:
+import { CreateClientDialog } from "@/components/CreateClientDialog";
+Por:
+import { CreateClientWizard } from "@/components/CreateClientWizard";
+
+E substituir:
+<CreateClientDialog />
+Por:
+<CreateClientWizard />
+
+2.3 ARQUIVAR FICHEIRO ANTIGO
+
+Renomear client/src/components/CreateClientDialog.tsx para:
+client/src/components/CreateClientDialog.tsx.OLD
+
+(Não apagar - manter como backup)
+
+═══════════════════════════════════════════════════════════════════
+PARTE 3: SISTEMA DE TEMAS (PREPARAÇÃO PARA ESCOLHA DE PALETA)
+═══════════════════════════════════════════════════════════════════
+
+3.1 CRIAR FICHEIRO DE TEMAS
+
+Ficheiro NOVO: client/src/lib/themes.ts
+
+Conteúdo:
+```typescript
+export type ThemeName = 'verde' | 'azul' | 'laranja';
+
+export interface ThemeColors {
+  primary: string;
+  primaryForeground: string;
+  secondary: string;
+  secondaryForeground: string;
+  accent: string;
+  accentForeground: string;
+}
+
+export const themes: Record<ThemeName, ThemeColors> = {
+  verde: {
+    primary: '152 55% 28%',        // Verde jardim
+    primaryForeground: '0 0% 100%',
+    secondary: '152 35% 92%',       // Verde claro
+    secondaryForeground: '152 55% 25%',
+    accent: '200 75% 50%',          // Azul
+    accentForeground: '0 0% 100%',
+  },
+  azul: {
+    primary: '221 83% 53%',         // Azul corporativo
+    primaryForeground: '0 0% 100%',
+    secondary: '214 95% 93%',       // Azul claro
+    secondaryForeground: '221 83% 45%',
+    accent: '142 76% 36%',          // Verde como accent
+    accentForeground: '0 0% 100%',
+  },
+  laranja: {
+    primary: '31 91% 51%',          // Laranja terra
+    primaryForeground: '0 0% 100%',
+    secondary: '48 96% 89%',        // Amarelo claro
+    secondaryForeground: '31 91% 40%',
+    accent: '199 89% 48%',          // Azul como accent
+    accentForeground: '0 0% 100%',
+  },
+};
+
+export function applyTheme(themeName: ThemeName) {
+  const theme = themes[themeName];
+  const root = document.documentElement;
+  
+  root.style.setProperty('--primary', theme.primary);
+  root.style.setProperty('--primary-foreground', theme.primaryForeground);
+  root.style.setProperty('--secondary', theme.secondary);
+  root.style.setProperty('--secondary-foreground', theme.secondaryForeground);
+  root.style.setProperty('--accent', theme.accent);
+  root.style.setProperty('--accent-foreground', theme.accentForeground);
+  
+  // Salvar preferência em localStorage
+  localStorage.setItem('servntrak-theme', themeName);
+}
+
+export function loadSavedTheme(): ThemeName {
+  const saved = localStorage.getItem('servntrak-theme') as ThemeName;
+  return saved && themes[saved] ? saved : 'verde';
+}

@@ -1,0 +1,104 @@
+# ServNtrak Design System
+
+## Paleta de Cores
+
+### Tema Verde (Padrão)
+- **Primary**: `hsl(152 55% 28%)` - #2D6A4F - Verde jardim
+- **Secondary**: `hsl(152 35% 92%)` - Verde claro para backgrounds
+- **Accent**: `hsl(200 75% 50%)` - Azul para destaques
+- **Muted**: `hsl(220 15% 94%)` - Cinza claro
+- **Foreground**: `hsl(220 20% 15%)` - Texto principal
+
+### Uso
+- Primary: Botões principais, navegação activa, elementos de marca
+- Secondary: Backgrounds suaves, estados hover
+- Accent: Call-to-actions secundárias, links
+- Muted: Backgrounds de inputs, cards subtis
+- Destructive: Acções de eliminação, alertas críticos
+
+## Tipografia
+
+### Fonte
+- Display/Headers: Inter (700-800 weight)
+- Body: Inter (400-600 weight)
+
+### Escala
+- Display: 39px (2.441rem) - Títulos de página
+- H1: 31px (1.953rem) - Secções principais
+- H2: 25px (1.563rem) - Subsecções
+- H3: 20px (1.25rem) - Títulos de card
+- Body: 16px (1rem) - Texto padrão
+- Caption: 12px (0.75rem) - Legendas
+
+## Espaçamento
+
+### Base: 8px Grid
+- p-1: 8px
+- p-2: 16px
+- p-3: 24px
+- p-4: 32px (padrão para cards mobile)
+- p-6: 48px (padrão para dialogs)
+
+### Border Radius
+- rounded-md: 8px - Inputs, small buttons
+- rounded-lg: 12px - Cards, medium buttons
+- rounded-xl: 16px - Dialogs, large cards
+- rounded-2xl: 24px - Elementos hero/destaque
+- rounded-full: 50% - Avatares, FABs
+
+## Componentes
+
+### Botões
+- Primary: `bg-primary text-primary-foreground` + shadow-lg
+- Secondary: `bg-secondary text-secondary-foreground`
+- Ghost: `hover:bg-muted`
+
+### Cards
+- Mobile: `bg-card rounded-2xl border p-4 shadow-sm`
+- Glass: `bg-white/80 backdrop-blur-xl rounded-2xl`
+
+### Inputs
+- Base: `rounded-xl border bg-background/80 px-4 py-3`
+- Focus: `ring-2 ring-primary ring-offset-2`
+
+### Navegação
+- Bottom Nav: Fixa, backdrop-blur, 5 itens principais
+- Active state: `bg-primary/10 text-primary`
+
+## Acessibilidade
+
+### Contraste
+- Texto normal: Mínimo 4.5:1 (WCAG AA)
+- Texto grande (18px+): Mínimo 3:1
+
+### Focus
+- Sempre visível: `ring-2 ring-primary ring-offset-2`
+- Nunca usar `outline-none` sem substituir por ring
+
+### Ícones
+- Sempre com `aria-label` e `role="img"`
+
+## Animações
+
+### Duração
+- Micro (hover, active): 200ms
+- Transição de página: 300ms
+- Modal/Dialog: 400ms
+
+### Easing
+- ease-out (padrão para entradas)
+- ease-in (saídas)
+- ease-in-out (transformações complexas)
+
+## Temas Disponíveis
+
+### Verde (Padrão)
+Para serviços de jardim, natureza, sustentabilidade
+
+### Azul
+Para aspeto corporativo, profissional, tecnológico
+
+### Laranja
+Para energia, calor, criatividade
+
+Mudança de tema: Perfil → Aparência → Selecionar paleta

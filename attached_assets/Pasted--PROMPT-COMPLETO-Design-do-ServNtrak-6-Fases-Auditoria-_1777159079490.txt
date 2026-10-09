@@ -1,0 +1,1313 @@
+# PROMPT COMPLETO: Design do ServNtrak — 6 Fases + Auditoria de UI
+
+**Status:** Pronto para implementação imediata
+**Tempo total estimado:** 32-36 horas (~4-5 dias)
+**Ordem de execução:** Fase 1 → 2 → 3 → 4 → 5 → 6
+
+---
+
+# AUDITORIA DE UI — Checklist de Validação Antes de Começar
+
+Antes de implementar qualquer coisa, vamos mapear o estado actual. **Preenche este checklist:**
+
+## 1. PALETA DE CORES — Verificar Cores Hardcoded
+
+```bash
+# Procurar em todo o client/src/
+grep -r "text-amber\|text-orange\|bg-amber\|bg-orange" client/src/
+grep -r "#[0-9A-Fa-f]\{6\}" client/src/ | grep -v "node_modules\|dist"
+grep -r "rgb(\|rgba(" client/src/ | grep -v "node_modules\|dist"
+```
+
+**O que procurar:**
+- [ ] Nenhuma cor amber/orange (devem estar todas em primary/secondary)
+- [ ] Nenhuma cor hex (#ABC123) direta (devem usar CSS variables)
+- [ ] Nenhum rgb/rgba (devem usar `hsl(var(...))`)
+
+**Resultado esperado:** 0 matches para todas as procuras acima
+
+---
+
+## 2. TIPOGRAFIA — Verificar Fonts Hardcoded
+
+```bash
+grep -r "font-family:\|@font-face" client/src/ | grep -v "Inter\|system-ui"
+```
+
+**O que procurar:**
+- [ ] Nenhuma fonte além de Inter
+- [ ] Nenhum `@font-face` customizado
+
+---
+
+## 3. ESPAÇAMENTO — Verificar Padding/Margin Aleatório
+
+```bash
+grep -r "padding:\|margin:\|gap:" client/src/ | grep -v "env(" | head -20
+```
+
+**O que procurar:**
+- [ ] Valores em px (ex: `padding: 13px`) — devem estar em rem/Tailwind
+- [ ] Valores estranhos (ex: `gap: 7px`) — devem ser múltiplos de 8px
+
+---
+
+## 4. BORDER RADIUS — Verificar Valores Inconsistentes
+
+```bash
+grep -r "border-radius:" client/src/ | head -10
+```
+
+**O que procurar:**
+- [ ] Apenas `1rem` (16px) e `0.75rem` (12px)
+- [ ] Nenhum `4px`, `6px`, `8px`, `12px` direto
+
+---
+
+## 5. VALIDAÇÃO DE FORMULÁRIOS — Testar em Browser
+
+**A testar manualmente:**
+- [ ] Abrir CreateClientWizard
+  - [ ] Deixar campo vazio → erro visual?
+  - [ ] Escrever email inválido → erro com mensagem?
+  - [ ] Corrigir → erro desaparece?
+  - [ ] Cor do erro é vermelha (destructive)?
+
+- [ ] Abrir ClientDetail (edit mode)
+  - [ ] Mesmo teste acima
+
+- [ ] Abrir Purchases (novo)
+  - [ ] Mesmo teste acima
+
+**Resultado esperado:**
+- Feedback visual imediato (não espera submit)
+- Mensagem clara de erro
+- Cores: erro (vermelho), sucesso (verde)
+
+---
+
+## 6. TABELAS — Testar Funcionalidades
+
+**Clients.tsx:**
+- [ ] Pode ordenar por coluna (clique no header)?
+- [ ] Filtro por tipo de serviço funciona?
+- [ ] Search funciona?
+- [ ] Responsive em mobile (375px)?
+
+**Purchases.tsx:**
+- [ ] É uma lista simples ou tabela?
+- [ ] Pode filtrar/ordenar?
+- [ ] Responsive?
+
+**PendingTasks.tsx:**
+- [ ] É uma lista simples ou tabela?
+
+**Reminders.tsx:**
+- [ ] É uma lista simples ou tabela?
+
+---
+
+## 7. ACESSIBILIDADE — DevTools Audit
+
+```bash
+1. Abrir DevTools
+2. Aba Lighthouse
+3. Seleccionar Accessibility
+4. Gerar relatório
+5. Anotar issues principais
+```
+
+**Checklist:**
+- [ ] Contraste mínimo 4.5:1
+- [ ] Aria-labels em ícones
+- [ ] Focus states visíveis
+- [ ] Nenhum erro WCAG AA
+
+---
+
+## 8. RESPONSIVIDADE — Testar em Mobile
+
+**Emular em DevTools (iPhone 12, 390x844):**
+- [ ] BottomNav fica visível (safe-area)?
+- [ ] Cards cabem no ecrã (sem horizontal scroll)?
+- [ ] Fontes legíveis (mínimo 16px para body)?
+- [ ] Touch targets ≥ 44px?
+
+**Páginas críticas:**
+- [ ] Home
+- [ ] Clients
+- [ ] Calendar
+- [ ] CreateClientWizard (5 steps em mobile?)
+
+---
+
+## Resultado da Auditoria
+
+**Após completar o checklist acima, resumir:**
+
+```
+✅ Cores: [SIM/NÃO] — Nenhuma hardcoded
+✅ Tipografia: [SIM/NÃO] — Apenas Inter
+✅ Espaçamento: [SIM/NÃO] — Grid 8pt
+✅ Border Radius: [SIM/NÃO] — Apenas 1rem/0.75rem
+✅ Validação: [SIM/NÃO] — Feedback visual inline
+✅ Tabelas: [SIM/NÃO] — Sort/filter/search funciona
+✅ Acessibilidade: [SIM/NÃO] — Sem erros WCAG AA
+✅ Responsividade: [SIM/NÃO] — Mobile funciona
+
+Issues críticos encontrados: [lista]
+Issues secundários encontrados: [lista]
+```
+
+---
+
+---
+
+# FASE 1: Melhorar Validação de Formulários
+
+**Objetivo:** Feedback visual imediato (inline) + mensagens contextuais claras
+
+**Tempo:** 4-6 horas
+
+**Impacto:** Alto (UX crítica — primeira coisa que utilizador vê)
+
+## 1.1 Definir Padrão de Validação Inline
+
+**Componente base:** `client/src/components/ui/input.tsx`
+
+**Estrutura esperada:**
+```tsx
+interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  error?: string;
+  success?: boolean;
+  hint?: string;
+}
+
+export const Input = React.forwardRef<HTMLInputElement, InputProps>(
+  ({ error, success, hint, ...props }, ref) => (
+    <div className="space-y-1">
+      <input
+        ref={ref}
+        className={cn(
+          "input-field",
+          error && "ring-destructive focus-visible:ring-destructive",
+          success && "ring-green-500 focus-visible:ring-green-500"
+        )}
+        {...props}
+      />
+      {error && (
+        <p className="text-xs text-destructive flex items-center gap-1">
+          <AlertCircle className="w-3 h-3" />
+          {error}
+        </p>
+      )}
+      {!error && hint && (
+        <p className="text-xs text-muted-foreground">{hint}</p>
+      )}
+    </div>
+  )
+);
+```
+
+**Checklist:**
+- [ ] Criar `error` prop (string ou undefined)
+- [ ] Criar `success` prop (boolean)
+- [ ] Criar `hint` prop (mensagem de ajuda)
+- [ ] Erro aparece em vermelho (destructive)
+- [ ] Sucesso aparece em verde
+- [ ] Hint aparece em cinza (muted)
+- [ ] Ícone AlertCircle para erro
+
+## 1.2 Implementar em CreateClientWizard
+
+**Cada field deve ter:**
+```tsx
+<Input
+  {...register('firstName', {
+    required: 'Nome obrigatório',
+    minLength: { value: 2, message: 'Mínimo 2 caracteres' },
+  })}
+  error={errors.firstName?.message}
+  hint="Ex: João Silva"
+/>
+```
+
+**Campos a validar:**
+- [ ] firstName, lastName — obrigatório, mín 2 caracteres
+- [ ] email — obrigatório, formato válido (regex ou lib)
+- [ ] phone — obrigatório, formato PT (+351 ou 9...)
+- [ ] address — obrigatório
+- [ ] hourlyRate, monthlyRate, perVisitRate — número > 0
+- [ ] latitude, longitude — número válido (se manual)
+
+**Mensagens claras:**
+```
+❌ "Campo obrigatório"
+❌ "Inválido"
+
+✅ "Nome obrigatório (mínimo 2 caracteres)"
+✅ "Email deve estar no formato: nome@exemplo.pt"
+✅ "Telefone deve começar com +351 ou 9"
+✅ "Preço deve ser um número positivo"
+```
+
+## 1.3 Implementar em ClientDetail (Edit Mode)
+
+**Mesma abordagem de Input validado**
+
+**Campos:**
+- [ ] Nome, telefone, email (mesmas regras)
+- [ ] Morada
+- [ ] Tipos de serviço (checkboxes)
+- [ ] Bilheteira (selectores dropdown)
+- [ ] Frequências (selectores)
+- [ ] Coordenadas GPS
+
+## 1.4 Implementar em Compras
+
+**Ficheiro:** `client/src/pages/Purchases.tsx`
+
+**Novo formulário:** Criar compra
+```tsx
+<Input
+  {...register('storeName')}
+  placeholder="Ex: Loja Aguarda"
+  error={errors.storeName?.message}
+  hint="Fornecedor ou loja onde comprou"
+/>
+<Input
+  {...register('totalPrice', { min: { value: 0, message: 'Deve ser > 0' } })}
+  type="number"
+  placeholder="0.00"
+  error={errors.totalPrice?.message}
+/>
+```
+
+## 1.5 Implementar em ExpenseNoteNew e QuoteNew
+
+**Validação de items:**
+```tsx
+<Input
+  {...register(`items.${index}.description`)}
+  placeholder="Ex: Limpeza de piscina"
+  error={errors.items?.[index]?.description?.message}
+/>
+<Input
+  {...register(`items.${index}.quantity`, { min: 1 })}
+  type="number"
+  error={errors.items?.[index]?.quantity?.message}
+/>
+```
+
+---
+
+## 1.6 Cores de Validação
+
+**Em `index.css`, adicionar:**
+```css
+:root {
+  --destructive: 0 75% 55%;  /* vermelho para erro */
+  --success: 145 60% 40%;    /* verde para sucesso */
+}
+
+.input-valid {
+  @apply ring-green-500/20 border-green-500;
+}
+
+.input-error {
+  @apply ring-destructive/20 border-destructive;
+}
+```
+
+---
+
+## Validar Fase 1
+
+**Após completar:**
+- [ ] Todos os inputs têm feedback inline
+- [ ] Erros aparecem em vermelho (destructive)
+- [ ] Mensagens são claras e contextuais
+- [ ] Feedback desaparece ao corrigir
+- [ ] Testar em mobile (espaço suficiente para mensagem?)
+
+---
+
+---
+
+# FASE 2: Refactor de Tabelas (Sort, Filter, Search, Responsive)
+
+**Objetivo:** Tabelas funcionais com sort/filter/search + responsividade
+
+**Tempo:** 8-10 horas
+
+**Impacto:** Médio-alto (core da app)
+
+## 2.1 Criar Componente Table Reutilizável
+
+**Ficheiro:** `client/src/components/DataTable.tsx`
+
+```tsx
+import { useState } from 'react';
+import { ChevronUp, ChevronDown, Search } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+
+interface Column<T> {
+  key: keyof T;
+  label: string;
+  sortable?: boolean;
+  render?: (value: any, row: T) => React.ReactNode;
+  width?: string; // ex: "w-32", "flex-1"
+}
+
+interface DataTableProps<T> {
+  data: T[];
+  columns: Column<T>[];
+  searchFields?: (keyof T)[]; // campos onde fazer search
+  searchPlaceholder?: string;
+  onRowClick?: (row: T) => void;
+  emptyMessage?: string;
+}
+
+export function DataTable<T extends { id: string | number }>({
+  data,
+  columns,
+  searchFields = [],
+  searchPlaceholder = "Procurar...",
+  onRowClick,
+  emptyMessage = "Nenhum resultado",
+}: DataTableProps<T>) {
+  const [sortBy, setSortBy] = useState<keyof T | null>(null);
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
+  const [search, setSearch] = useState('');
+
+  // Filtrar por search
+  const filtered = data.filter(row => {
+    if (!search) return true;
+    return searchFields.some(field => {
+      const val = String(row[field]).toLowerCase();
+      return val.includes(search.toLowerCase());
+    });
+  });
+
+  // Ordenar
+  const sorted = [...filtered].sort((a, b) => {
+    if (!sortBy) return 0;
+    const aVal = a[sortBy];
+    const bVal = b[sortBy];
+    
+    if (typeof aVal === 'number' && typeof bVal === 'number') {
+      return sortDir === 'asc' ? aVal - bVal : bVal - aVal;
+    }
+    
+    const aStr = String(aVal).toLowerCase();
+    const bStr = String(bVal).toLowerCase();
+    return sortDir === 'asc' ? aStr.localeCompare(bStr) : bStr.localeCompare(aStr);
+  });
+
+  const toggleSort = (key: keyof T) => {
+    if (sortBy === key) {
+      setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(key);
+      setSortDir('asc');
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      {searchFields.length > 0 && (
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            type="text"
+            placeholder={searchPlaceholder}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+      )}
+
+      <div className="overflow-x-auto rounded-lg border border-border">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-border bg-muted/50">
+              {columns.map((col) => (
+                <th
+                  key={String(col.key)}
+                  className={`px-4 py-3 text-left font-semibold text-foreground ${col.width || 'flex-1'}`}
+                  onClick={() => col.sortable && toggleSort(col.key)}
+                  role={col.sortable ? 'button' : undefined}
+                  aria-label={col.sortable ? `Ordenar por ${col.label}` : col.label}
+                >
+                  <div className="flex items-center gap-2 cursor-pointer">
+                    {col.label}
+                    {col.sortable && sortBy === col.key && (
+                      sortDir === 'asc' ? (
+                        <ChevronUp className="w-4 h-4" aria-hidden />
+                      ) : (
+                        <ChevronDown className="w-4 h-4" aria-hidden />
+                      )
+                    )}
+                  </div>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {sorted.length === 0 ? (
+              <tr>
+                <td colSpan={columns.length} className="px-4 py-8 text-center text-muted-foreground">
+                  {emptyMessage}
+                </td>
+              </tr>
+            ) : (
+              sorted.map((row, idx) => (
+                <tr
+                  key={row.id}
+                  className="border-b border-border/50 hover:bg-muted/30 transition-colors"
+                  onClick={() => onRowClick?.(row)}
+                  role={onRowClick ? 'button' : undefined}
+                >
+                  {columns.map((col) => (
+                    <td key={String(col.key)} className={`px-4 py-3 ${col.width || 'flex-1'}`}>
+                      {col.render ? col.render(row[col.key], row) : row[col.key]}
+                    </td>
+                  ))}
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      <p className="text-xs text-muted-foreground">
+        {sorted.length} de {data.length} resultados
+      </p>
+    </div>
+  );
+}
+```
+
+**Checklist:**
+- [ ] Criar ficheiro DataTable.tsx
+- [ ] Implementar sort (clique no header)
+- [ ] Implementar search (input no topo)
+- [ ] Implementar filtro (opcional: dropdown)
+- [ ] Responsive (scroll horizontal em mobile)
+- [ ] Hover effect nas linhas
+- [ ] Empty state com mensagem
+- [ ] Contador de resultados
+
+## 2.2 Refactor Clients.tsx com DataTable
+
+**Antes (lista manual):**
+```tsx
+// ... código longo com map manual
+```
+
+**Depois:**
+```tsx
+import { DataTable } from '@/components/DataTable';
+
+export function Clients() {
+  const { data: clients } = useClients();
+
+  const columns = [
+    {
+      key: 'name',
+      label: 'Cliente',
+      sortable: true,
+      width: 'flex-1',
+    },
+    {
+      key: 'phone',
+      label: 'Telefone',
+      sortable: false,
+      width: 'w-24',
+    },
+    {
+      key: 'billingType',
+      label: 'Tipo',
+      sortable: true,
+      render: (val: string) => <span className="text-xs bg-primary/10 px-2 py-1 rounded">{val}</span>,
+      width: 'w-20',
+    },
+    {
+      key: 'monthlyRate',
+      label: 'Tarifa',
+      sortable: true,
+      render: (val: number) => `€${val.toFixed(2)}`,
+      width: 'w-20',
+    },
+  ];
+
+  return (
+    <div className="pb-24 px-4 space-y-4">
+      <DataTable
+        data={clients || []}
+        columns={columns}
+        searchFields={['name', 'phone', 'email']}
+        searchPlaceholder="Procurar cliente..."
+        onRowClick={(row) => navigate(`/clients/${row.id}`)}
+        emptyMessage="Nenhum cliente. Crie o primeiro!"
+      />
+    </div>
+  );
+}
+```
+
+## 2.3 Refactor Purchases.tsx com DataTable
+
+**Adicionar:**
+```tsx
+const columns = [
+  { key: 'purchaseDate', label: 'Data', sortable: true, render: (val) => new Date(val).toLocaleDateString('pt-PT') },
+  { key: 'storeName', label: 'Fornecedor', sortable: true },
+  { key: 'category', label: 'Categoria', sortable: true },
+  { key: 'totalPrice', label: 'Total', sortable: true, render: (val) => `€${val.toFixed(2)}` },
+];
+
+<DataTable
+  data={purchases || []}
+  columns={columns}
+  searchFields={['storeName', 'category']}
+  searchPlaceholder="Procurar compra..."
+/>
+```
+
+## 2.4 Refactor PendingTasks.tsx com DataTable
+
+**Adicionar:**
+```tsx
+const columns = [
+  { key: 'taskName', label: 'Tarefa', sortable: true },
+  { key: 'clientName', label: 'Cliente', sortable: true },
+  { key: 'priority', label: 'Prioridade', sortable: true, render: (val) => <Badge>{val}</Badge> },
+  { key: 'status', label: 'Status', sortable: false, render: () => <Checkbox /> },
+];
+```
+
+## 2.5 Refactor Reminders.tsx com DataTable
+
+**Adicionar:**
+```tsx
+const columns = [
+  { key: 'clientName', label: 'Cliente', sortable: true },
+  { key: 'reminderType', label: 'Tipo', sortable: true },
+  { key: 'frequency', label: 'Frequência', sortable: true },
+];
+```
+
+## 2.6 Responsividade
+
+**Em mobile < 768px:**
+```css
+@media (max-width: 768px) {
+  .data-table {
+    display: block;
+    overflow-x: auto;
+  }
+  
+  table {
+    min-width: 600px; /* força scroll horizontal */
+  }
+}
+```
+
+**Ou usar card stack em mobile:**
+```tsx
+{/* Desktop */}
+<div className="hidden md:block">
+  <DataTable ... />
+</div>
+
+{/* Mobile */}
+<div className="md:hidden space-y-2">
+  {sorted.map((row) => (
+    <div key={row.id} className="mobile-card space-y-2">
+      <p className="font-semibold">{row.name}</p>
+      <p className="text-sm text-muted-foreground">{row.phone}</p>
+    </div>
+  ))}
+</div>
+```
+
+---
+
+## Validar Fase 2
+
+**Após completar:**
+- [ ] DataTable componente criado e reutilizável
+- [ ] Clients.tsx refactored com sort/filter/search
+- [ ] Purchases.tsx refactored
+- [ ] PendingTasks.tsx refactored
+- [ ] Reminders.tsx refactored
+- [ ] Responsive funciona em mobile
+- [ ] Hover effect em linhas
+- [ ] Contador de resultados funciona
+- [ ] Search funciona em tempo real
+
+---
+
+---
+
+# FASE 3: Simplificar Fluxo de Criar Cliente
+
+**Objetivo:** CreateClientWizard otimizado com validação, help contextual e preview
+
+**Tempo:** 4 horas
+
+**Impacto:** Médio (UX core)
+
+## 3.1 Revisão do CreateClientWizard
+
+**Verificar:**
+- [ ] Validação inline por step (implementada na Fase 1)
+- [ ] Progresso visual (1/5, 2/5, etc.)
+- [ ] Dados persistem entre steps
+- [ ] Help contextual em cada step
+- [ ] Preview antes de confirmar
+
+## 3.2 Adicionar Help Contextual
+
+**Cada step tem `hint` (rodapé com dica):**
+
+```tsx
+// Step 1: Básico
+const hints = {
+  firstName: "Primeiro nome do cliente (ou pessoa responsável)",
+  lastName: "Apelido completo",
+  email: "Email para contacto / notificações",
+  phone: "Telefone para marcar/confirmar visitas",
+};
+
+// Step 2: Serviços
+const hints = {
+  gardenService: "Inclui poda, rega, limpeza, plantações",
+  poolService: "Inclui limpeza, tratamento químico, manutenção",
+  jaccuzziService: "Inclui limpeza, tratamento, manutenção",
+};
+```
+
+## 3.3 Adicionar Preview (Passo 5)
+
+**Antes de confirmar, mostrar:**
+```tsx
+<div className="space-y-4 p-4 bg-muted/50 rounded-lg">
+  <h3 className="font-semibold">Resumo do Cliente</h3>
+  
+  <div className="grid grid-cols-2 gap-4 text-sm">
+    <div>
+      <p className="text-muted-foreground">Nome</p>
+      <p className="font-semibold">{data.firstName} {data.lastName}</p>
+    </div>
+    <div>
+      <p className="text-muted-foreground">Email</p>
+      <p className="font-semibold">{data.email}</p>
+    </div>
+    <div>
+      <p className="text-muted-foreground">Serviços</p>
+      <p className="font-semibold">
+        {[data.gardenService && 'Jardim', data.poolService && 'Piscina', data.jaccuzziService && 'Jacuzzi'].filter(Boolean).join(', ')}
+      </p>
+    </div>
+    <div>
+      <p className="text-muted-foreground">Tipo Faturação</p>
+      <p className="font-semibold">{data.billingType}</p>
+    </div>
+  </div>
+
+  <p className="text-xs text-muted-foreground">Pode editar depois clicando no cliente.</p>
+</div>
+```
+
+## 3.4 Testar em Mobile
+
+**Checklist:**
+- [ ] 5 steps cabem visualmente em 390px?
+- [ ] Inputs têm tamanho adequado (touch target ≥ 44px)?
+- [ ] Scroller é suave entre steps?
+- [ ] Mensagens de erro não saem do ecrã?
+
+## 3.5 UX Melhoras
+
+**Adicionar atalhos (opcional):**
+- [ ] Skip button para "tenho coordenadas GPS, não preciso de mapa"
+- [ ] Pre-fill email baseado em padrão (se houver)
+- [ ] Auto-format telefone (PT: +351 9... ou 2...)
+
+---
+
+## Validar Fase 3
+
+**Após completar:**
+- [ ] Wizard funciona com validação inline
+- [ ] Help contextual aparece em cada step
+- [ ] Preview mostra resumo correcto
+- [ ] Mobile funciona bem
+- [ ] Nenhuma fricção entre steps
+
+---
+
+---
+
+# FASE 4: Simplificar Fluxo de Agendar Serviço
+
+**Objetivo:** Calendar otimizado com criação rápida + drag-and-drop + sinalizações
+
+**Tempo:** 6 horas
+
+**Impacto:** Médio (workflow crítico)
+
+## 4.1 Análise Atual do Calendar.tsx
+
+**Verificar:**
+- [ ] Visualização mensal funciona
+- [ ] Botão "Gerar Mês" funciona com preview
+- [ ] Agendamentos aparecem no calendário
+- [ ] Pode clicar num agendamento para ver detalhes
+
+## 4.2 Adicionar Criação Rápida
+
+**Clicar numa data vazia → modal rápida:**
+
+```tsx
+const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+const [quickCreateOpen, setQuickCreateOpen] = useState(false);
+
+const handleDateClick = (date: Date) => {
+  setSelectedDate(date);
+  setQuickCreateOpen(true);
+};
+
+// Modal rápida
+<Dialog open={quickCreateOpen} onOpenChange={setQuickCreateOpen}>
+  <DialogContent>
+    <DialogHeader>
+      <DialogTitle>Agendar Serviço — {selectedDate?.toLocaleDateString('pt-PT')}</DialogTitle>
+    </DialogHeader>
+
+    <form className="space-y-4">
+      {/* Selector de cliente */}
+      <Select defaultValue="">
+        <SelectTrigger>
+          <SelectValue placeholder="Seleccionar cliente" />
+        </SelectTrigger>
+        <SelectContent>
+          {clients?.map((c) => (
+            <SelectItem key={c.id} value={c.id}>
+              {c.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      {/* Selector de tipo de serviço */}
+      <Select>
+        <SelectTrigger>
+          <SelectValue placeholder="Tipo de serviço" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="garden">Jardim</SelectItem>
+          <SelectItem value="pool">Piscina</SelectItem>
+          <SelectItem value="jaccuzzi">Jacuzzi</SelectItem>
+        </SelectContent>
+      </Select>
+
+      {/* Hora */}
+      <Input type="time" placeholder="Hora (ex: 10:00)" />
+
+      <Button onClick={() => createAndClose()}>Agendar</Button>
+    </form>
+  </DialogContent>
+</Dialog>
+```
+
+## 4.3 Adicionar Visualização de Semana
+
+**Botão para mudar vista:**
+```tsx
+const [view, setView] = useState<'month' | 'week'>('month');
+
+<div className="flex gap-2 mb-4">
+  <Button 
+    variant={view === 'month' ? 'default' : 'outline'}
+    onClick={() => setView('month')}
+  >
+    Mês
+  </Button>
+  <Button 
+    variant={view === 'week' ? 'default' : 'outline'}
+    onClick={() => setView('week')}
+  >
+    Semana
+  </Button>
+</div>
+
+{view === 'month' && <MonthView />}
+{view === 'week' && <WeekView />}
+```
+
+## 4.4 Sinalizar Conflitos de Horário
+
+**Se existir agendamento na mesma hora:**
+```tsx
+const hasConflict = (date: Date, time: string) => {
+  return appointments?.some(apt => {
+    const aptDate = new Date(apt.appointmentDate);
+    return isSameDay(aptDate, date) && apt.time === time;
+  });
+};
+
+{hasConflict && (
+  <Alert className="border-yellow-500 bg-yellow-50">
+    <AlertTriangle className="w-4 h-4 text-yellow-600" />
+    <AlertDescription className="text-yellow-800">
+      Já existe um agendamento nesta hora. Tem a certeza?
+    </AlertDescription>
+  </Alert>
+)}
+```
+
+## 4.5 Drag-and-Drop (Opcional, Avançado)
+
+**Se houver tempo, usar `react-beautiful-dnd` ou `dnd-kit`:**
+```bash
+npm install dnd-kit @dnd-kit/utilities @dnd-kit/core @dnd-kit/sortable
+```
+
+Permitir arrastar agendamento de um dia para outro.
+
+---
+
+## Validar Fase 4
+
+**Após completar:**
+- [ ] Vista mensal funciona
+- [ ] Vista semanal funciona
+- [ ] Clique numa data abre modal rápida
+- [ ] Criação rápida funciona
+- [ ] Conflitos são sinalizados
+- [ ] Geração de mês com preview funciona
+- [ ] Mobile funciona bem
+
+---
+
+---
+
+# FASE 5: Simplificar Fluxo de Faturar
+
+**Objetivo:** ExpenseNotes + Quotes otimizados com fluxos diretos
+
+**Tempo:** 6 horas
+
+**Impacto:** Médio (workflow crítico)
+
+## 5.1 Fluxo Direto: Visita → ExpenseNote
+
+**Adicionar botão em `ServiceVisit`:**
+```tsx
+const handleCreateExpenseNoteFromVisit = async () => {
+  // Pré-preencher com dados da visita
+  const expenseNote = {
+    clientId: visit.clientId,
+    serviceLogId: visit.serviceLogId, // link directo
+    items: visit.services.map(svc => ({
+      description: svc.name,
+      type: 'service',
+      quantity: 1,
+      unitPrice: svc.price,
+    })),
+  };
+  
+  navigate(`/expense-notes/new`, { state: { expenseNote } });
+};
+
+<Button 
+  onClick={handleCreateExpenseNoteFromVisit}
+  className="w-full mt-4"
+>
+  Criar Nota de Despesa
+</Button>
+```
+
+## 5.2 Fluxo Direto: Quote Aceite → ExpenseNote
+
+**Em `QuoteDetail.tsx`, quando status = 'accepted':**
+```tsx
+{quote.status === 'accepted' && (
+  <Button 
+    onClick={() => {
+      const expenseNote = {
+        clientId: quote.clientId,
+        items: quote.items, // pre-filled
+      };
+      navigate('/expense-notes/new', { state: { expenseNote } });
+    }}
+    className="w-full"
+  >
+    Converter em Nota de Despesa
+  </Button>
+)}
+```
+
+## 5.3 Pre-fill Automático em ExpenseNoteNew
+
+**Quando chega com state:**
+```tsx
+useEffect(() => {
+  if (location.state?.expenseNote) {
+    // Preencher form automaticamente
+    Object.entries(location.state.expenseNote).forEach(([key, value]) => {
+      setValue(key, value);
+    });
+  }
+}, [location.state, setValue]);
+```
+
+## 5.4 Botão de Share Unificado
+
+**Em `ExpenseNoteDetail.tsx`:**
+```tsx
+<div className="flex gap-2 mt-4">
+  {/* Download PDF */}
+  <Button 
+    onClick={() => downloadExpenseNotePdf(expenseNote)}
+    variant="outline"
+    className="flex-1"
+  >
+    <Download className="w-4 h-4 mr-2" />
+    Guardar PDF
+  </Button>
+
+  {/* Share via Web Share API */}
+  <Button 
+    onClick={() => {
+      navigator.share({
+        title: `Nota de Despesa ${expenseNote.noteNumber}`,
+        text: `Total: €${expenseNote.total}`,
+        url: window.location.href,
+      });
+    }}
+    variant="outline"
+    className="flex-1"
+  >
+    <Share2 className="w-4 h-4 mr-2" />
+    Partilhar
+  </Button>
+
+  {/* Email (se domínio verificado) */}
+  <Button 
+    onClick={() => emailExpenseNote(expenseNote)}
+    variant="outline"
+    className="flex-1"
+  >
+    <Mail className="w-4 h-4 mr-2" />
+    Email
+  </Button>
+</div>
+```
+
+## 5.5 Melhorias UX em Quotes
+
+**Adicionar template rápida:**
+```tsx
+<Select onValueChange={(template) => {
+  const presets = {
+    routine: [
+      { description: 'Limpeza de jardim', quantity: 1, unitPrice: 50 },
+      { description: 'Rega', quantity: 1, unitPrice: 20 },
+    ],
+    pool: [
+      { description: 'Limpeza de piscina', quantity: 1, unitPrice: 60 },
+      { description: 'Tratamento químico', quantity: 1, unitPrice: 40 },
+    ],
+  };
+  
+  if (presets[template]) {
+    setItems(presets[template]);
+  }
+}}>
+  <SelectValue placeholder="Template rápida..." />
+  <SelectContent>
+    <SelectItem value="routine">Manutenção Rotina</SelectItem>
+    <SelectItem value="pool">Piscina Completa</SelectItem>
+    <SelectItem value="custom">Customizado</SelectItem>
+  </SelectContent>
+</Select>
+```
+
+---
+
+## Validar Fase 5
+
+**Após completar:**
+- [ ] Fluxo visita → expense note funciona
+- [ ] Quote aceite → expense note funciona
+- [ ] Pre-fill automático funciona
+- [ ] Share PDF/Email/Web Share funciona
+- [ ] Templates rápidas funcionam
+- [ ] Nenhuma fricção no fluxo
+
+---
+
+---
+
+# FASE 6: Adicionar Onboarding Progressivo
+
+**Objetivo:** Guiar utilizador novo nas primeiras utilizações
+
+**Tempo:** 4 horas
+
+**Impacto:** Baixo (nice to have, melhora UX)
+
+## 6.1 Sistema de Onboarding
+
+**Criar hook:** `client/src/hooks/useOnboarding.ts`
+
+```tsx
+import { useEffect, useState } from 'react';
+
+export type OnboardingStep = 'welcome' | 'first-client' | 'first-appointment' | 'first-invoice';
+
+const ONBOARDING_KEY = 'servntrak-onboarding-steps';
+
+export function useOnboarding() {
+  const [completedSteps, setCompletedSteps] = useState<OnboardingStep[]>([]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem(ONBOARDING_KEY);
+    if (saved) {
+      setCompletedSteps(JSON.parse(saved));
+    }
+  }, []);
+
+  const markAsCompleted = (step: OnboardingStep) => {
+    const updated = [...completedSteps, step];
+    setCompletedSteps(updated);
+    localStorage.setItem(ONBOARDING_KEY, JSON.stringify(updated));
+  };
+
+  const isCompleted = (step: OnboardingStep) => completedSteps.includes(step);
+
+  return { completedSteps, markAsCompleted, isCompleted };
+}
+```
+
+## 6.2 Welcome Modal (Primeira Sessão)
+
+**Em `Home.tsx`:**
+```tsx
+import { useOnboarding } from '@/hooks/useOnboarding';
+
+export function Home() {
+  const { isCompleted, markAsCompleted } = useOnboarding();
+  const [showWelcome, setShowWelcome] = useState(!isCompleted('welcome'));
+
+  return (
+    <>
+      <Dialog open={showWelcome} onOpenChange={setShowWelcome}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-2xl">Bem-vindo ao ServNtrak! 🌱</DialogTitle>
+          </DialogHeader>
+
+          <p className="text-muted-foreground">
+            A sua app de gestão de serviços de jardim, piscina e jacuzzi.
+          </p>
+
+          <div className="space-y-2 py-4">
+            <p className="font-semibold text-sm">Próximos passos:</p>
+            <ol className="space-y-1 text-sm">
+              <li>✅ Criar primeiro cliente</li>
+              <li>✅ Agendar uma visita</li>
+              <li>✅ Registar tempo gasto</li>
+              <li>✅ Emitir fatura</li>
+            </ol>
+          </div>
+
+          <Button 
+            onClick={() => {
+              markAsCompleted('welcome');
+              setShowWelcome(false);
+            }}
+            className="w-full"
+          >
+            Começar
+          </Button>
+        </DialogContent>
+      </Dialog>
+
+      {/* Rest of Home page */}
+    </>
+  );
+}
+```
+
+## 6.3 Tooltips Contextuais
+
+**Em `Clients.tsx` (se não tem clientes):**
+```tsx
+{!clients?.length && !isCompleted('first-client') && (
+  <div className="p-4 bg-primary/10 rounded-lg border border-primary/20">
+    <p className="font-semibold text-primary mb-2">Dica: Crie seu primeiro cliente</p>
+    <p className="text-sm text-muted-foreground mb-3">
+      Clique no botão abaixo para adicionar o seu primeiro cliente.
+    </p>
+    <CreateClientWizard 
+      onSuccess={() => markAsCompleted('first-client')}
+    />
+  </div>
+)}
+```
+
+## 6.4 Dicas Inline
+
+**Em cada página:**
+```tsx
+// Home.tsx — próximos passos
+<Alert className="bg-blue-50 border-blue-200">
+  <Lightbulb className="w-4 h-4 text-blue-600" />
+  <AlertDescription className="text-blue-800">
+    <strong>Dica:</strong> Você tem 3 clientes por visitar esta semana. 
+    <a href="/calendar" className="underline ml-1">Ver calendário</a>
+  </AlertDescription>
+</Alert>
+
+// Calendar.tsx — criar primeira marcação
+<Alert className="bg-green-50 border-green-200">
+  <Lightbulb className="w-4 h-4 text-green-600" />
+  <AlertDescription className="text-green-800">
+    Clique numa data para agendar rapidamente.
+  </AlertDescription>
+</Alert>
+
+// ExpenseNotes.tsx — criar primeira fatura
+<Alert className="bg-purple-50 border-purple-200">
+  <Lightbulb className="w-4 h-4 text-purple-600" />
+  <AlertDescription className="text-purple-800">
+    Crie uma nota de despesa após uma visita completada.
+  </AlertDescription>
+</Alert>
+```
+
+## 6.5 Dismissável
+
+**Cada dica tem X no canto:**
+```tsx
+const [dismissedTips, setDismissedTips] = useState<string[]>([]);
+
+if (dismissedTips.includes('first-appointment')) return null;
+
+<Alert className="relative">
+  <button
+    onClick={() => setDismissedTips([...dismissedTips, 'first-appointment'])}
+    className="absolute top-2 right-2"
+    aria-label="Fechar dica"
+  >
+    <X className="w-4 h-4" />
+  </button>
+  {/* Conteúdo da dica */}
+</Alert>
+```
+
+---
+
+## Validar Fase 6
+
+**Após completar:**
+- [ ] Welcome modal aparece na primeira sessão
+- [ ] Dicas contextuais aparecem onde relevante
+- [ ] Dicas são dismissáveis
+- [ ] Onboarding steps são marcados corretamente
+- [ ] localStorage persiste entre sessões
+
+---
+
+---
+
+# RESUMO FINAL
+
+## Checklist de Implementação
+
+### Fase 1: Validação de Formulários
+- [ ] Input com error/success/hint props
+- [ ] Feedback visual inline
+- [ ] Mensagens contextuais
+- [ ] Testado em todos os formulários
+
+### Fase 2: Tabelas
+- [ ] DataTable componente criado
+- [ ] Sort funciona
+- [ ] Filter funciona
+- [ ] Search funciona
+- [ ] Responsive funciona
+- [ ] Clients, Purchases, PendingTasks, Reminders refactored
+
+### Fase 3: Cliente
+- [ ] Validação inline por step
+- [ ] Help contextual
+- [ ] Preview antes de confirmar
+- [ ] Testado em mobile
+
+### Fase 4: Agenda
+- [ ] Vista mensal funciona
+- [ ] Vista semanal funciona
+- [ ] Criação rápida por clique em data
+- [ ] Conflitos sinalizados
+- [ ] Testado em mobile
+
+### Fase 5: Fatura
+- [ ] Fluxo visita → expense note
+- [ ] Fluxo quote → expense note
+- [ ] Pre-fill automático
+- [ ] Share unificada (PDF/Email/Web)
+- [ ] Templates rápidas
+
+### Fase 6: Onboarding
+- [ ] Welcome modal
+- [ ] Tooltips contextuais
+- [ ] Dicas dismissáveis
+- [ ] LocalStorage persiste
+
+---
+
+## Tempo Total
+
+| Fase | Tempo | Status |
+|------|-------|--------|
+| Auditoria | 1-2h | Antes de começar |
+| 1 — Validação | 4-6h | ⏳ |
+| 2 — Tabelas | 8-10h | ⏳ |
+| 3 — Cliente | 4h | ⏳ |
+| 4 — Agenda | 6h | ⏳ |
+| 5 — Fatura | 6h | ⏳ |
+| 6 — Onboarding | 4h | ⏳ |
+| **Total** | **32-36h** | **~5 dias @ 8h/dia** |
+
+---
+
+## Próximo Passo
+
+1. **Completar a auditoria de UI** (checklist no topo deste prompt)
+2. **Começar Fase 1** (Validação de Formulários)
+3. **Seguir ordem lógica** (1 → 2 → 3 → 4 → 5 → 6)
+4. **Marcar completo** enquanto avanças
+
+---
+
+## Referências
+
+- `DESIGN_SYSTEM.md` — paleta, tipografia, componentes
+- `shared/schema.ts` — schema de dados
+- `client/src/pages/` — todas as páginas
+- `client/src/components/` — componentes existentes
+
+---
+
+## Dúvidas?
+
+Se tiveres dúvidas em qualquer fase, volta a perguntar. Estou cá.
+
+Boa sorte! 🚀

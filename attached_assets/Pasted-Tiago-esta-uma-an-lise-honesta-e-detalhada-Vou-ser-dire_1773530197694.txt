@@ -1,0 +1,47 @@
+Tiago, esta é uma análise honesta e detalhada. Vou ser direto.
+
+✅ O que está bem feito
+A base de dados é sólida. A separação entre appointments, serviceLogs, serviceVisits e serviceVisitServices mostra que pensaste bem no modelo de dados — especialmente as visitas combinadas (jardim + piscina na mesma deslocação). Isso é raro em apps deste tipo e resolve um problema real.
+O modelo de faturação é sofisticado. Suportar simultaneamente mensalidade fixa, hora e por visita, com controlo de extras separados, é exatamente o que uma empresa como a tua precisa. A maioria das apps genéricas de field service não chegam aqui.
+O dashboard Home está bem pensado. Relógio, próximo trabalho com contagem regressiva, fila do dia, alertas de pagamento — isto é UX focado no utilizador real (alguém que começa o dia no telemóvel antes de sair de casa).
+A sazonalidade está modelada corretamente. Época alta/baixa com frequências diferentes por tipo de serviço é um detalhe que mostra conhecimento do negócio. Poucas apps verticais chegam a este nível.
+O WebAuthn/biométrico é um toque profissional que a maioria dos projetos indie nem considera.
+Fotos antes/depois com object storage é uma funcionalidade de alto valor — documenta o trabalho feito e protege-te em caso de reclamações.
+
+⚠️ O que falta ou está incompleto
+1. Faturação real — o elefante na sala
+Tens controlo de pagamentos, mas não emites documentos fiscais. Em Portugal, uma empresa (mesmo unipessoal) precisa de emitir recibos verdes ou faturas. Sem integração com a AT (via fatura eletrónica) ou pelo menos geração de PDF com os campos legais obrigatórios (NIF, data, descrição, IVA), a app não substitui o processo atual — apenas o complementa. Isto é crítico para a versão comercial.
+2. Rotas e otimização de deslocações
+Tens o mapa com clientes, e tens o “próximo trabalho”. Mas não tens otimização de rota diária. Para alguém que faz 6-8 visitas por dia na zona Oeste, a ordem das visitas impacta diretamente o custo de combustível e o número de clientes possíveis por dia. Isto seria uma das funcionalidades de maior valor prático imediato.
+3. Gestão de produtos químicos / stock
+Para piscinas e jacuzzis, usas cloro, pH-, pH+, algicida, etc. Registas materiais por visita, mas não tens stock. Não sabes quantos litros de cloro tens em armazém, não recebes alerta quando está a acabar, não sabes o custo real por cliente/mês. Isto é uma lacuna operacional direta.
+4. Comunicação com clientes — quase nenhuma
+Tens WhatsApp e Facebook Messenger nos dados do cliente, mas não há nenhuma funcionalidade de comunicação dentro da app. Não há envio de confirmação de visita, resumo do trabalho feito, ou orçamento. Para uma versão comercial, isto é esperado.
+5. Relatórios financeiros são provavelmente fracos
+Tens a estrutura, mas “receitas vs despesas” genérico não chega. Falta: margem por cliente, custo real por visita (mão-de-obra + materiais + deslocação), clientes rentáveis vs deficitários, comparação mensal ano a ano. Sem isto, a gestão financeira é cega.
+6. Trabalhos Sugeridos sem fluxo completo
+Está marcado como “em desenvolvimento”. É uma funcionalidade de alto valor (upsell ao cliente) que sem o fluxo de aceitação não serve para nada. Está a meio.
+7. Sem histórico de alterações / auditoria
+Se mudas o preço de um cliente, o tipo de faturação, ou a frequência — não há registo de quando foi alterado nem porquê. Para faturação e disputas com clientes, isso é um problema.
+8. Backup e exportação de dados
+Tens exportação PDF/Excel, mas não há menção de backup automático dos dados do utilizador. Para uma app com dados financeiros e de clientes, isto precisa de estar visível e confiável.
+
+💡 Funcionalidades que aumentariam o valor
+Impacto imediato (para uso próprio):
+	∙	Otimização de rota diária — dado o conjunto de visitas do dia, sugerir a ordem ideal. Integrável com Google Maps Directions API. Poupança real de tempo e combustível.
+	∙	Stock de produtos químicos — inventário simples com alertas de nível mínimo e consumo automático por visita registada.
+	∙	Relatório de rentabilidade por cliente — quanto faturei, quanto gastei (mão-de-obra + materiais + deslocação estimada), margem líquida. Identificar os clientes que não valem o esforço.
+	∙	Timer de visita no móvel — botão “iniciar visita” / “terminar visita” que regista a duração real vs estimada. Útil para ajustar preços.
+	∙	Notas de voz por visita — ditar observações no local em vez de escrever. Converte para texto automaticamente.
+Para tornar comercializável:
+	∙	Emissão de documentos fiscais — integração com a AT via webservice, ou pelo menos geração de recibo verde em PDF com campos legais. Sem isto, o mercado português não abandona o que já usa.
+	∙	Portal do cliente (read-only) — um link onde o cliente vê o histórico das suas visitas, fotos, e faturas pendentes. Reduz chamadas e aumenta a perceção de profissionalismo. Diferenciador forte para a versão SaaS.
+	∙	Notificações automáticas — WhatsApp ou SMS antes da visita (“Amanhã às 9h estaremos na sua morada”). Reduz faltas e aumenta satisfação.
+	∙	App para funcionários (versão limitada) — os teus trabalhadores verem os trabalhos do dia, registarem horas, tirarem fotos — sem acesso à gestão financeira. Multi-utilizador com permissões.
+	∙	Onboarding guiado — para a versão SaaS, um novo utilizador precisa de conseguir registar o primeiro cliente e agendar a primeira visita em menos de 5 minutos. Sem isto, o churn no trial vai ser alto.
+	∙	Integração com Google Calendar — sincronizar agendamentos bidirecionalmente. Muitos utilizadores vivem no Google Calendar.
+
+🏆 Veredicto para a versão comercial
+A app tem um nível de profundidade invulgar para um projeto individual. O modelo de dados, a sazonalidade, a faturação mista e o foco no utilizador de campo são pontos fortes reais. Não é mais um CRM genérico adaptado — foi claramente construído por alguém que percebe o negócio por dentro.
+Os dois bloqueadores principais para comercialização são: faturação fiscal (sem isto, em Portugal ninguém troca o e-fatura por outra coisa) e comunicação com clientes (confirmações, resumos de visita). Tudo o resto é polimento e diferenciação.
+Para o nicho de jardinagem e manutenção de piscinas em Portugal e Espanha existe espaço — as alternativas genéricas (Jobber, ServiceM8, Housecall Pro) são em inglês, caras, e não têm sazonalidade nem os tipos de serviço corretos. Uma versão a 15-25€/mês direcionada a empresas do setor tem mercado real.​​​​​​​​​​​​​​​​

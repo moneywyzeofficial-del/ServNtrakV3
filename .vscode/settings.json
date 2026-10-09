@@ -1,0 +1,19 @@
+{
+    "css.validate": false,
+    "css.lint.unknownAtRules": "ignore",
+    "files.exclude": {
+        "**/.local": true,
+        "**/.agents": true,
+        "**/.claude/worktrees": true
+    },
+    "search.exclude": {
+        "**/.local": true,
+        "**/.agents": true,
+        "**/.claude/worktrees": true
+    },
+    "files.watcherExclude": {
+        "**/.local/**": true,
+        "**/.agents/**": true,
+        "**/.claude/worktrees/**": true
+    }
+}

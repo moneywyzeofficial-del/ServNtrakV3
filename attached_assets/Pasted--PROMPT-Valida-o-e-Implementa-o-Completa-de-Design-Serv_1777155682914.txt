@@ -1,0 +1,536 @@
+# PROMPT: Validação e Implementação Completa de Design — ServNtrak
+
+**Contexto:** Auditoria de design revelou que implementações marcadas como “concluídas” em 25 Abril 2026 não existem no código. Este prompt cobre as 5 fases necessárias para validar e completar todas as melhorias de design.
+
+-----
+
+## FASE 1: Corrigir BottomNav — Remover Cores Hardcoded
+
+**Ficheiro:** `client/src/components/BottomNav.tsx`
+
+**Estado actual:** Linhas 24-59 têm cores hardcoded (laranja, âmbar, marrom).
+
+**Problema:** Contrasta com o resto da app que é verde. Não usa CSS variables do tema.
+
+**Solução:**
+
+```tsx
+import { Link, useLocation } from "wouter";
+import { Home, Calendar, Users, User, BarChart2 } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+const MORE_ROUTES = [
+  "/finances", "/reports", "/exports", "/billing",
+  "/payments", "/gallery", "/reminders", "/map", "/employees", "/pending-tasks",
+  "/expense-notes",
+];
+
+export function BottomNav() {
+  const [location] = useLocation();
+
+  const navItems = [
+    { href: "/",        icon: Home,     label: "Início",      ariaLabel: "Página inicial" },
+    { href: "/clients", icon: Users,    label: "Clientes",    ariaLabel: "Lista de clientes" },
+    { href: "/calendar",icon: Calendar, label: "Agenda",      ariaLabel: "Calendário de agendamentos" },
+    { href: "/reports", icon: BarChart2,label: "Relatórios",  ariaLabel: "Relatórios e análises" },
+    { href: "/profile", icon: User,     label: "Perfil",      ariaLabel: "Perfil do utilizador" },
+  ];
+
+  return (
+    <nav
+      className="bottom-nav"
+      data-testid="bottom-navigation"
+      aria-label="Navegação principal"
+    >
+      <div className="flex justify-around items-center mx-auto h-16 px-2">
+        {navItems.map((item) => {
+          const isActive =
+            location === item.href ||
+            (item.href === "/reports" && MORE_ROUTES.includes(location));
+
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="bottom-nav-item"
+              data-testid={`nav-${item.label.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")}`}
+              aria-label={item.ariaLabel}
+              aria-current={isActive ? "page" : undefined}
+            >
+              <div className={cn(
+                "icon-circle transition-all duration-200",
+                isActive ? "bg-primary/10" : "hover:bg-primary/5"
+              )}>
+                <item.icon
+                  className={cn(
+                    "w-5 h-5 transition-colors",
+                    isActive ? "text-primary" : "text-muted-foreground"
+                  )}
+                  strokeWidth={isActive ? 2.5 : 2}
+                  aria-hidden="true"
+                />
+              </div>
+              <span className={cn(
+                "text-[10px] transition-colors mt-0.5",
+                isActive ? "font-bold text-primary" : "font-medium text-muted-foreground"
+              )}>
+                {item.label}
+              </span>
+              {isActive && (
+                <span className="absolute bottom-1.5 w-1 h-1 rounded-full bg-primary" />
+              )}
+            </Link>
+          );
+        })}
+      </div>
+    </nav>
+  );
+}
+```
+
+**Checklist:**
+
+- [ ] Remover `border-orange-100/60` → usar CSS variable `.bottom-nav`
+- [ ] Remover `bg-orange-50` → usar `bg-primary/10`
+- [ ] Remover `text-amber-500` → usar `text-primary`
+- [ ] Remover `text-[#9B7B5E]` → usar `text-muted-foreground`
+- [ ] Adicionar `aria-label` a cada item
+- [ ] Adicionar `aria-current="page"` quando ativo
+- [ ] Adicionar `aria-hidden="true"` ao ícone (não é texto)
+- [ ] Adicionar `aria-label="Navegação principal"` ao `<nav>`
+
+-----
+
+## FASE 2: Criar Sistema de Temas — `client/src/lib/themes.ts`
+
+**Ficheiro novo:** `client/src/lib/themes.ts`
+
+**Conteúdo:**
+
+```typescript
+export type Theme = 'verde' | 'azul' | 'laranja';
+
+const themes: Record<Theme, Record<string, string>> = {
+  verde: {
+    '--primary': '152 55% 28%',
+    '--primary-foreground': '0 0% 100%',
+    '--secondary': '152 35% 92%',
+    '--secondary-foreground': '152 55% 25%',
+    '--accent': '200 75% 50%',
+    '--accent-foreground': '0 0% 100%',
+    '--muted': '220 15% 94%',
+    '--muted-foreground': '220 10% 50%',
+    '--ring': '152 55% 35%',
+    '--gradient-primary': 'linear-gradient(135deg, hsl(152 55% 28%) 0%, hsl(160 50% 22%) 100%)',
+  },
+  azul: {
+    '--primary': '200 70% 45%',
+    '--primary-foreground': '0 0% 100%',
+    '--secondary': '200 40% 92%',
+    '--secondary-foreground': '200 70% 35%',
+    '--accent': '210 80% 55%',
+    '--accent-foreground': '0 0% 100%',
+    '--muted': '220 15% 94%',
+    '--muted-foreground': '220 10% 50%',
+    '--ring': '200 70% 50%',
+    '--gradient-primary': 'linear-gradient(135deg, hsl(200 70% 45%) 0%, hsl(210 75% 40%) 100%)',
+  },
+  laranja: {
+    '--primary': '35 90% 55%',
+    '--primary-foreground': '0 0% 100%',
+    '--secondary': '35 85% 92%',
+    '--secondary-foreground': '35 90% 40%',
+    '--accent': '25 85% 50%',
+    '--accent-foreground': '0 0% 100%',
+    '--muted': '220 15% 94%',
+    '--muted-foreground': '220 10% 50%',
+    '--ring': '35 85% 50%',
+    '--gradient-primary': 'linear-gradient(135deg, hsl(35 90% 55%) 0%, hsl(25 85% 50%) 100%)',
+  },
+};
+
+export function applyTheme(theme: Theme): void {
+  const root = document.documentElement;
+  const themeVars = themes[theme];
+  
+  Object.entries(themeVars).forEach(([key, value]) => {
+    root.style.setProperty(key, value);
+  });
+  
+  localStorage.setItem('servntrak-theme', theme);
+}
+
+export function loadSavedTheme(): Theme {
+  const saved = localStorage.getItem('servntrak-theme') as Theme | null;
+  return saved && (saved === 'verde' || saved === 'azul' || saved === 'laranja') 
+    ? saved 
+    : 'verde';
+}
+
+export function getCurrentTheme(): Theme {
+  const saved = localStorage.getItem('servntrak-theme') as Theme | null;
+  return saved && (saved === 'verde' || saved === 'azul' || saved === 'laranja')
+    ? saved
+    : 'verde';
+}
+
+export const themeLabels: Record<Theme, string> = {
+  verde: 'Verde Natural',
+  azul: 'Azul Corporativo',
+  laranja: 'Laranja Energia',
+};
+
+export const themeDescriptions: Record<Theme, string> = {
+  verde: 'Natureza, jardins, sustentabilidade',
+  azul: 'Corporativo, profissional, tecnológico',
+  laranja: 'Energia, calor, criatividade',
+};
+```
+
+**Checklist:**
+
+- [ ] Criar ficheiro em `client/src/lib/themes.ts`
+- [ ] Definir 3 temas com todas as CSS variables
+- [ ] Implementar `applyTheme()`
+- [ ] Implementar `loadSavedTheme()` com fallback para verde
+- [ ] Implementar `getCurrentTheme()`
+- [ ] Adicionar `themeLabels` e `themeDescriptions`
+- [ ] Testar localStorage
+
+-----
+
+## FASE 3: Adicionar Selector de Temas ao Profile
+
+**Ficheiro:** `client/src/pages/Profile.tsx`
+
+**Local:** Adicionar nova secção antes do logout (após dados pessoais).
+
+**Código a adicionar:**
+
+```tsx
+import { useState, useEffect } from 'react';
+import { applyTheme, getCurrentTheme, themeLabels, themeDescriptions, type Theme } from '@/lib/themes';
+
+// Dentro do componente Profile, após a secção de dados pessoais:
+
+export function Profile() {
+  const [currentTheme, setCurrentTheme] = useState<Theme>('verde');
+
+  useEffect(() => {
+    const theme = getCurrentTheme();
+    setCurrentTheme(theme);
+  }, []);
+
+  const handleThemeChange = (theme: Theme) => {
+    applyTheme(theme);
+    setCurrentTheme(theme);
+  };
+
+  const themes: Theme[] = ['verde', 'azul', 'laranja'];
+
+  return (
+    <div className="pb-24">
+      {/* ... secções existentes ... */}
+
+      {/* NOVA SECÇÃO: Temas */}
+      <div className="px-4 py-6 border-t border-border">
+        <h3 className="text-lg font-bold mb-4 text-foreground">Tema da App</h3>
+        <div className="grid grid-cols-3 gap-3">
+          {themes.map((theme) => (
+            <button
+              key={theme}
+              onClick={() => handleThemeChange(theme)}
+              className={cn(
+                'p-4 rounded-2xl border-2 transition-all duration-300 text-center',
+                currentTheme === theme
+                  ? 'border-primary bg-primary/10'
+                  : 'border-border hover:border-primary/50'
+              )}
+              aria-label={`Selecionar tema ${themeLabels[theme]}`}
+              aria-pressed={currentTheme === theme}
+            >
+              <div className="font-semibold text-sm mb-1">{themeLabels[theme].split(' ')[0]}</div>
+              <div className="text-xs text-muted-foreground">{themeDescriptions[theme]}</div>
+              {/* Preview de cor */}
+              <div className={`w-8 h-8 rounded-full mx-auto mt-2 ${
+                theme === 'verde' ? 'bg-green-600' :
+                theme === 'azul' ? 'bg-blue-600' :
+                'bg-orange-500'
+              }`} />
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ... resto do componente ... */}
+    </div>
+  );
+}
+```
+
+**Checklist:**
+
+- [ ] Importar `applyTheme`, `getCurrentTheme`, `themeLabels`, `themeDescriptions` em Profile.tsx
+- [ ] Adicionar estado `currentTheme`
+- [ ] Carregar tema ao montar o componente
+- [ ] Criar 3 botões com cores de preview
+- [ ] Aplicar tema ao clicar
+- [ ] Adicionar `aria-label` e `aria-pressed` para acessibilidade
+- [ ] Testar mudança de tema em tempo real
+
+-----
+
+## FASE 4: Carregar Tema ao Iniciar a App
+
+**Ficheiro:** `client/src/main.tsx`
+
+**Adicionar ao topo do ficheiro (antes de qualquer render):**
+
+```typescript
+import { loadSavedTheme, applyTheme } from './lib/themes';
+
+// Carregar e aplicar tema guardado antes de qualquer coisa
+const savedTheme = loadSavedTheme();
+applyTheme(savedTheme);
+```
+
+**Checklist:**
+
+- [ ] Importar `loadSavedTheme` e `applyTheme` em `main.tsx`
+- [ ] Chamar `applyTheme(loadSavedTheme())` ANTES de render
+- [ ] Testar que o tema persiste após recarregar a página
+
+-----
+
+## FASE 5: Adicionar Aria-Labels Completos
+
+**Ficheiros a auditar e corrigir:**
+
+### 5a. `client/src/components/Home.tsx`
+
+Procurar por ícones sem `aria-label`:
+
+```bash
+grep -n "lucide-react" client/src/pages/Home.tsx
+```
+
+Adicionar `aria-label` a cada ícone:
+
+```tsx
+<CheckCircle2 
+  className="w-5 h-5"
+  aria-label="Serviço concluído"
+/>
+```
+
+### 5b. `client/src/components/Clients.tsx`
+
+Mesma abordagem. Adicionar descrições contextuais:
+
+```tsx
+<Plus 
+  className="w-5 h-5"
+  aria-label="Adicionar novo cliente"
+/>
+```
+
+### 5c. Todos os componentes com ícones
+
+Padrão: `aria-label="[Acção] [Contexto]"`
+
+- ❌ Errado: `aria-label="mais"`
+- ✅ Correcto: `aria-label="Adicionar novo cliente"`
+
+**Checklist:**
+
+- [ ] Auditar Home.tsx — adicionar aria-labels
+- [ ] Auditar Clients.tsx — adicionar aria-labels
+- [ ] Auditar ClientDetail.tsx — adicionar aria-labels
+- [ ] Auditar Calendar.tsx — adicionar aria-labels
+- [ ] Auditar todos os componentes com ícones
+- [ ] Testar com leitor de ecrã (or simulate com DevTools)
+
+-----
+
+## FASE 6: Criar DESIGN_SYSTEM.md
+
+**Ficheiro novo:** `DESIGN_SYSTEM.md` (raiz do repositório)
+
+**Conteúdo:**
+
+```markdown
+# Design System — ServNtrak
+
+## 1. Paleta de Cores
+
+### Tema Verde (Padrão)
+- **Primary:** `hsl(152 55% 28%)` — #2D6A4F (verde jardim)
+- **Secondary:** `hsl(152 35% 92%)` — verde claro
+- **Accent:** `hsl(200 75% 50%)` — azul destaque
+- **Muted:** `hsl(220 15% 94%)` — cinza claro
+- **Foreground:** `hsl(220 20% 15%)` — texto escuro
+
+### Tema Azul
+- **Primary:** `hsl(200 70% 45%)` — azul corporativo
+- **Secondary:** `hsl(200 40% 92%)` — azul claro
+- **Accent:** `hsl(210 80% 55%)` — azul mais brilhante
+
+### Tema Laranja
+- **Primary:** `hsl(35 90% 55%)` — laranja quente
+- **Secondary:** `hsl(35 85% 92%)` — laranja claro
+- **Accent:** `hsl(25 85% 50%)` — laranja escuro
+
+**Selector:** Perfil → secção "Tema da App" → 3 botões com preview
+
+## 2. Tipografia
+
+- **Display/Headers:** Inter 700-800 weight
+- **Body:** Inter 400-600 weight
+- **Escala:** Modular (base 1.250 — "Major Third")
+  - h1: 3xl / 1.875rem
+  - h2: xl / 1.25rem
+  - h3: lg / 1.125rem
+  - Body: sm / 0.875rem
+
+## 3. Espaçamento
+
+- **Grid:** 8pt (Tailwind spacing)
+- **Gaps:** p-2, p-4, p-6, p-8
+- **Margins:** m-2, m-4, m-6, m-8
+
+## 4. Border Radius
+
+- **Default:** 1rem (16px) — `.rounded-2xl`
+- **Buttons:** 0.75rem — `.rounded-xl`
+- **Cards:** 1rem — `.rounded-2xl`
+
+## 5. Componentes UI
+
+### Botões
+- `.btn-primary` — gradient + sombra
+- `.btn-secondary` — fundo plano
+- Focus state: `ring-2 ring-primary ring-offset-2`
+
+### Cards
+- `.mobile-card` — bordered, subtle shadow
+- `.glass-card` — frosted glass effect
+- `.stat-card` — com gradiente sutil
+
+### Formulários
+- `.input-field` — backdrop blur, ring focus
+- Validação: cores de erro em `--destructive`
+
+### Navegação
+- `.bottom-nav` — nav principal
+- `.bottom-nav-item` — itens com `.active` state
+- Focus: `ring-2 ring-primary` obrigatório
+
+## 6. Acessibilidade (WCAG AA)
+
+### Contraste
+- Texto/background: 4.5:1 mínimo
+- Verificado: foreground vs background, primary vs background
+
+### Focus States
+- **Obrigatório:** `ring-2 ring-primary ring-offset-2`
+- Visível em todos os elementos interativos
+
+### Aria Labels
+- **Ícones:** `aria-label="[Acção] [Contexto]"`
+- **Botões:** `aria-label` ou texto visível
+- **Navegação:** `aria-label="Navegação principal"`, `aria-current="page"`
+
+### Redução de Movimento
+- Media query: `prefers-reduced-motion: reduce` → animations: 0.01ms
+
+## 7. Animações
+
+- **Page transitions:** 0.3s `ease-out`
+- **Hover:** 0.2-0.3s
+- **Active/press:** 0.1s
+- **Fade/slide:** `fade-in`, `slide-up`, `scale-in`
+
+## 8. Componentes Customizados
+
+### Quick Action
+- `.quick-action` — hexágono/losango com hover
+- `.quick-action:hover` — translate-y-1, shadow-lg
+
+### Floating Button
+- `.floating-button` — w-14 h-14 arredondado
+- Hover: scale-105, shadow-2xl
+
+### Shimmer (Loading)
+- Gradiente animado para placeholders
+
+## 9. Modo Dark
+
+Suportado nativamente via `.dark` class no `:root`
+- Cores ajustadas automáticamente
+- Primary mais brilhante (152 50% 45%)
+- Background mais escuro (220 25% 8%)
+
+## 10. Checklist de Consistência
+
+- [ ] Nenhuma cor hardcoded — usar CSS variables
+- [ ] Nenhum `text-amber-*`, `text-orange-*` — usar `text-primary`
+- [ ] Todos os ícones têm `aria-label` ou `aria-hidden="true"`
+- [ ] Todos os inputs têm focus state
+- [ ] Contraste verificado com DevTools Accessibility Audit
+- [ ] Tema persiste em localStorage
+```
+
+**Checklist:**
+
+- [ ] Criar `DESIGN_SYSTEM.md` na raiz
+- [ ] Documentar todas as cores, tipografia, espaçamento
+- [ ] Incluir exemplos de uso
+- [ ] Incluir checklist de consistência
+- [ ] Adicionar link ao repositório README
+
+-----
+
+## VALIDAÇÃO FINAL
+
+Após completar as 6 fases:
+
+1. **BottomNav:** Verificar que não existem cores hardcoded (grep `-orange`, `-amber`)
+1. **Temas:** Testar mudança de tema e persistência
+1. **Aria-labels:** Auditar todos os ícones com DevTools Accessibility
+1. **DESIGN_SYSTEM.md:** Ler e confirmar que documenta correctamente
+1. **Contraste:** Rodar “Lighthouse Accessibility Audit” no DevTools
+
+-----
+
+## Ordem de Execução Recomendada
+
+1. **Fase 1** (BottomNav) — 15 min — Crítico
+1. **Fase 2** (themes.ts) — 15 min — Base para o resto
+1. **Fase 3** (Profile selector) — 15 min — UI para temas
+1. **Fase 4** (main.tsx) — 5 min — Persistência
+1. **Fase 5** (Aria-labels) — 30 min — Acessibilidade
+1. **Fase 6** (DESIGN_SYSTEM.md) — 20 min — Documentação
+
+**Tempo total:** ~100 min (1h 40min)
+
+-----
+
+## Dúvidas Comuns
+
+**P: E se quiser apenas 1 tema (verde)?**
+R: Fase 2-3 criam a infraestrutura mas o selector fica com 3 botões. Podes remover o selector ou deixar como está (sem funcionalidade).
+
+**P: Aria-labels em quais ícones exatamente?**
+R: Todos que não têm texto associado. Se um botão diz “Adicionar”, não precisa aria-label. Se é só um ícone `+`, precisa `aria-label="Adicionar"`.
+
+**P: DevTools Accessibility Audit — como usar?**
+R: Chrome DevTools → Lighthouse → Accessibility → gera relatório com issues.
+
+-----
+
+## Referências
+
+- [Notion — Contexto ServNtrak](https://www.notion.so/32b7a645229381af992afd9ac36e25d1)
+- [WCAG AA Contrast Checker](https://webaim.org/resources/contrastchecker/)
+- [MDN — aria-label](https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Attributes/aria-label)
+- [React Accessibility](https://react.dev/learn/accessibility)

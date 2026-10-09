@@ -1,0 +1,316 @@
+1. Adicionar ao shared/schema.ts
+Já fizeste o db:push com a tabela passwordResetTokens, mas precisas de adicionar as relações e o tipo. Adiciona isto no final do ficheiro, antes dos // === TYPES ===:
+typescriptexport const passwordResetTokensRelations = relations(passwordResetTokens, ({ one }) => ({
+  user: one(users, {
+    fields: [passwordResetTokens.userId],
+    references: [users.id],
+  }),
+}));
+E nos tipos, adiciona:
+typescriptexport type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
+
+2. Criar server/email.ts — serviço de email
+Cria este ficheiro novo:
+typescriptimport { Resend } from "resend";
+
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+export async function sendPasswordResetEmail(
+  toEmail: string,
+  resetToken: string,
+  baseUrl: string
+): Promise<void> {
+  const resetUrl = `${baseUrl}/reset-password?token=${resetToken}`;
+
+  await resend.emails.send({
+    from: "ServNtrak <onboarding@resend.dev>",
+    to: toEmail,
+    subject: "Recuperação de palavra-passe — ServNtrak",
+    html: `
+      <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 32px;">
+        <h2 style="color: #2D1B0E; margin-bottom: 8px;">Recuperação de palavra-passe</h2>
+        <p style="color: #9B7B5E; margin-bottom: 24px;">
+          Recebemos um pedido para redefinir a palavra-passe da tua conta ServNtrak.
+        </p>
+        <a href="${resetUrl}"
+           style="display: inline-block; background: linear-gradient(to right, #F97316, #EAB308);
+                  color: white; padding: 12px 24px; border-radius: 8px;
+                  text-decoration: none; font-weight: 600; margin-bottom: 24px;">
+          Redefinir palavra-passe
+        </a>
+        <p style="color: #9B7B5E; font-size: 14px;">
+          Este link expira em <strong>1 hora</strong>.<br/>
+          Se não pediste a recuperação, ignora este email.
+        </p>
+        <hr style="border: none; border-top: 1px solid #f0e8df; margin: 24px 0;" />
+        <p style="color: #9B7B5E; font-size: 12px;">Peralta Gardens — ServNtrak</p>
+      </div>
+    `,
+  });
+}
+
+3. Adicionar endpoints ao server/replit_integrations/auth/replitAuth.ts
+Adiciona estas importações no topo do ficheiro, junto às existentes:
+typescriptimport crypto from "crypto";
+import { db } from "../../db";
+import { passwordResetTokens } from "@shared/schema";
+import { eq, and, gt } from "drizzle-orm";
+import { sendPasswordResetEmail } from "../../email";
+Depois adiciona estes dois endpoints antes do export const isAuthenticated:
+typescript// --- Forgot Password ---
+app.post("/api/auth/forgot-password", async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ message: "Email é obrigatório" });
+    }
+
+    // Sempre responde com sucesso para não revelar se o email existe
+    const user = await authStorage.getUserByEmail(email);
+    if (!user) {
+      return res.json({ message: "Se o email existir, receberás um link de recuperação." });
+    }
+
+    // Invalida tokens anteriores do mesmo utilizador
+    await db.delete(passwordResetTokens)
+      .where(eq(passwordResetTokens.userId, user.id));
+
+    // Gera token seguro
+    const token = crypto.randomBytes(32).toString("hex");
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hora
+
+    await db.insert(passwordResetTokens).values({
+      userId: user.id,
+      token,
+      expiresAt,
+    });
+
+    const baseUrl = `${req.protocol}://${req.get("host")}`;
+    await sendPasswordResetEmail(email, token, baseUrl);
+
+    return res.json({ message: "Se o email existir, receberás um link de recuperação." });
+  } catch (err) {
+    console.error("Forgot password error:", err);
+    return res.status(500).json({ message: "Erro interno do servidor" });
+  }
+});
+
+// --- Reset Password ---
+const resetPasswordSchema = z.object({
+  token: z.string().min(1, "Token é obrigatório"),
+  newPassword: z.string().min(6, "A palavra-passe deve ter pelo menos 6 caracteres"),
+});
+
+app.post("/api/auth/reset-password", async (req, res) => {
+  try {
+    const input = resetPasswordSchema.parse(req.body);
+
+    const [resetRecord] = await db
+      .select()
+      .from(passwordResetTokens)
+      .where(
+        and(
+          eq(passwordResetTokens.token, input.token),
+          gt(passwordResetTokens.expiresAt, new Date()),
+        )
+      )
+      .limit(1);
+
+    if (!resetRecord || resetRecord.usedAt) {
+      return res.status(400).json({ message: "Link inválido ou expirado" });
+    }
+
+    const newHash = await bcrypt.hash(input.newPassword, 12);
+    await authStorage.updateUserPassword(resetRecord.userId, newHash);
+
+    // Marca token como usado
+    await db.update(passwordResetTokens)
+      .set({ usedAt: new Date() })
+      .where(eq(passwordResetTokens.id, resetRecord.id));
+
+    return res.json({ message: "Palavra-passe redefinida com sucesso" });
+  } catch (err) {
+    if (err instanceof z.ZodError) {
+      return res.status(400).json({ message: err.errors[0].message });
+    }
+    console.error("Reset password error:", err);
+    return res.status(500).json({ message: "Erro interno do servidor" });
+  }
+});
+
+4. Modificar client/src/pages/Login.tsx
+Adiciona "forgot-password" e "reset-password" ao tipo AuthView:
+typescripttype AuthView = "main" | "login" | "register" | "forgot-password" | "reset-password";
+Adiciona este import no topo (junto aos existentes):
+typescriptimport { useLocation } from "wouter";
+Adiciona este estado e efeito logo após const { toast } = useToast();:
+typescriptconst [, setLocation] = useLocation();
+const [resetToken, setResetToken] = useState("");
+const [forgotEmail, setForgotEmail] = useState("");
+const [resetNewPassword, setResetNewPassword] = useState("");
+const [resetSuccess, setResetSuccess] = useState(false);
+
+// Deteta token na URL para reset de password
+useEffect(() => {
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get("token");
+  if (token) {
+    setResetToken(token);
+    setView("reset-password");
+  }
+}, []);
+Adiciona as duas mutations após a registerMutation:
+typescriptconst forgotPasswordMutation = useMutation({
+  mutationFn: async (email: string) => {
+    const res = await fetch("/api/auth/forgot-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.message || "Erro ao enviar email");
+    }
+    return res.json();
+  },
+  onSuccess: () => setResetSuccess(true),
+  onError: (error: Error) => {
+    toast({ title: "Erro", description: error.message, variant: "destructive" });
+  },
+});
+
+const resetPasswordMutation = useMutation({
+  mutationFn: async (data: { token: string; newPassword: string }) => {
+    const res = await fetch("/api/auth/reset-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.message || "Erro ao redefinir palavra-passe");
+    }
+    return res.json();
+  },
+  onSuccess: () => {
+    toast({ title: "Sucesso", description: "Palavra-passe redefinida. Podes iniciar sessão." });
+    setLocation("/");
+    setView("login");
+  },
+  onError: (error: Error) => {
+    toast({ title: "Erro", description: error.message, variant: "destructive" });
+  },
+});
+No view "login", adiciona o link "Esqueceste a palavra-passe?" logo após o bloco <div className="flex items-center gap-2"> do remember-me e antes do botão Entrar:
+tsx<div className="text-right">
+  <button
+    type="button"
+    onClick={() => setView("forgot-password")}
+    className="text-xs text-muted-foreground hover:text-primary"
+    data-testid="link-forgot-password"
+  >
+    Esqueceste a palavra-passe?
+  </button>
+</div>
+Por fim, adiciona as duas views novas antes do <p className="mt-6 text-xs..."> final:
+tsx{view === "forgot-password" && (
+  <Card>
+    <CardContent className="p-5">
+      <button
+        onClick={() => setView("login")}
+        className="flex items-center gap-1 text-sm text-muted-foreground mb-4 hover-elevate rounded-md px-2 py-1 -ml-2"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        Voltar
+      </button>
+
+      <h2 className="text-lg font-semibold mb-1">Recuperar palavra-passe</h2>
+      <p className="text-sm text-muted-foreground mb-4">
+        Indica o teu email e enviamos um link de recuperação.
+      </p>
+
+      {resetSuccess ? (
+        <div className="text-center space-y-3 py-4">
+          <Mail className="w-10 h-10 text-primary mx-auto" />
+          <p className="text-sm font-medium">Email enviado</p>
+          <p className="text-xs text-muted-foreground">
+            Se o email existir na nossa base de dados, receberás um link em breve.
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="forgot-email">Email</Label>
+            <div className="relative">
+              <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                id="forgot-email"
+                type="email"
+                placeholder="email@exemplo.com"
+                value={forgotEmail}
+                onChange={(e) => setForgotEmail(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+          </div>
+          <Button
+            className="w-full"
+            disabled={forgotPasswordMutation.isPending || !forgotEmail}
+            onClick={() => forgotPasswordMutation.mutate(forgotEmail)}
+          >
+            {forgotPasswordMutation.isPending ? (
+              <Loader2 className="w-4 h-4 animate-spin mr-2" />
+            ) : null}
+            Enviar link de recuperação
+          </Button>
+        </div>
+      )}
+    </CardContent>
+  </Card>
+)}
+
+{view === "reset-password" && (
+  <Card>
+    <CardContent className="p-5">
+      <h2 className="text-lg font-semibold mb-1">Nova palavra-passe</h2>
+      <p className="text-sm text-muted-foreground mb-4">
+        Escolhe uma nova palavra-passe para a tua conta.
+      </p>
+
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="reset-password-input">Nova palavra-passe</Label>
+          <div className="relative">
+            <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              id="reset-password-input"
+              type={showPassword ? "text" : "password"}
+              placeholder="Mínimo 6 caracteres"
+              value={resetNewPassword}
+              onChange={(e) => setResetNewPassword(e.target.value)}
+              className="pl-10 pr-10"
+              autoComplete="new-password"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+            >
+              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+          </div>
+        </div>
+        <Button
+          className="w-full"
+          disabled={resetPasswordMutation.isPending || !resetNewPassword || resetNewPassword.length < 6}
+          onClick={() => resetPasswordMutation.mutate({ token: resetToken, newPassword: resetNewPassword })}
+        >
+          {resetPasswordMutation.isPending ? (
+            <Loader2 className="w-4 h-4 animate-spin mr-2" />
+          ) : null}
+          Redefinir palavra-passe
+        </Button>
+      </div>
+    </CardContent>
+  </Card>
+)}

@@ -1,0 +1,34 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        
+        
+        {
+            "name": "Start Dev Server",
+            "type": "node",
+            "request": "launch",
+            "runtimeExecutable": "npm",
+            "runtimeArgs": ["run", "dev"],
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "NODE_ENV": "development"
+            },
+            "console": "integratedTerminal",
+            "skipFiles": ["<node_internals>/**"]
+        },
+        {
+            "name": "Open Browser",
+            "type": "editor-browser",
+            "request": "launch",
+            "url": "http://localhost:5000",
+            "webRoot": "${workspaceFolder}/client"
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Dev (Server + Browser)",
+            "configurations": ["Start Dev Server", "Open Browser"],
+            "stopAll": true
+        }
+    ]
+}
