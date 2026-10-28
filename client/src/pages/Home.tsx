@@ -22,7 +22,6 @@ import { BottomNav } from "@/components/BottomNav";
 import { DocumentScanDialog } from "@/components/DocumentScanDialog";
 import VoiceToText from "@/components/VoiceToText";
 import { PushHealthBanner } from "@/components/PushHealthBanner";
-import { HomeTopDropdown } from "@/components/HomeTopDropdown";
 import { HomeActionMenus } from "@/components/HomeActionMenus";
 import { cn, formatDuration } from "@/lib/utils";
 import type { PurchaseCategory, Store } from "@shared/schema";
@@ -281,7 +280,6 @@ export default function Home() {
   const { data: categories = [] } = useQuery<PurchaseCategory[]>({ queryKey: ['/api/purchase-categories'] });
   const { data: stores = [] } = useQuery<Store[]>({ queryKey: ['/api/stores'] });
   const { data: allClients = [] } = useClients();
-  const { data: weatherData } = useDetailedWeather();
 
   const todayStart = useMemo(() => startOfDay(new Date()).toISOString(), []);
 
@@ -432,12 +430,6 @@ export default function Home() {
             <img src={logoHorizontal} alt="ServNtrak" className="h-[18px] block" />
           </div>
           <div className="flex items-center gap-2">
-            {weatherData && (
-              <div className="flex items-center gap-1 bg-white/15 backdrop-blur-sm rounded-full px-2.5 py-1 border border-white/20">
-                <Sun className="w-3.5 h-3.5 text-white" />
-                <span className="text-[11px] font-bold text-white">{Math.round(weatherData.temperature)}°C</span>
-              </div>
-            )}
             <div className="w-8 h-8 rounded-full bg-white/20 border border-white/30 flex items-center justify-center text-white text-[11px] font-bold">
               {userName.charAt(0).toUpperCase()}
             </div>
@@ -469,8 +461,6 @@ export default function Home() {
         <div className="mb-4">
           <PushHealthBanner variant="prominent" />
         </div>
-
-        <HomeTopDropdown />
 
         {/* ── GPS ERROR ──────────────────────────── */}
         {geo.erro && (
