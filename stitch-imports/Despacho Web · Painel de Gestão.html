@@ -1,0 +1,537 @@
+<!DOCTYPE html><html lang="pt"><head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0" name="viewport"><meta content="web_dashboard" name="shell-type"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"><link href="https://fonts.googleapis.com" rel="preconnect"><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"><link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"on-secondary-fixed":"#00201c","tertiary":"#a83900","inverse-surface":"#263238","surface-container-low":"#e9f6fd","inverse-on-surface":"#e6f3fb","surface-container-highest":"#d7e4ec","secondary-fixed-dim":"#67d9c9","primary-fixed":"#94f990","outline-variant":"#becab9","border":"#E4E6E8","error":"#ba1a1a","on-secondary":"#ffffff","primary-deep":"#357A38","accent-soft":"#E0F2F1","tertiary-container":"#ff6f33","surface-variant":"#d7e4ec","surface-container-high":"#ddeaf2","surface-bright":"#f4faff","surface":"#f4faff","warm-soft":"#FFF3E0","on-surface-variant":"#3f4a3c","secondary-fixed":"#85f6e5","error-container":"#ffdad6","on-surface":"#111d23","secondary":"#006a60","tertiary-fixed-dim":"#ffb59a","muted-foreground":"#757575","on-background":"#111d23","on-secondary-fixed-variant":"#005048","on-primary-container":"#003c0b","card":"#FFFFFF","muted":"#EEF1F0","on-error":"#ffffff","background":"#FAFAF7","on-tertiary-fixed":"#380d00","surface-tint":"#006e1c","on-tertiary-fixed-variant":"#802a00","surface-container-lowest":"#ffffff","on-tertiary":"#ffffff","on-primary":"#ffffff","on-error-container":"#93000a","primary":"#006e1c","primary-fixed-dim":"#78dc77","inverse-primary":"#78dc77","on-tertiary-container":"#5f1d00","surface-container":"#e3f0f8","primary-soft":"#E8F5E9","on-secondary-container":"#007166","outline":"#6f7a6b","primary-container":"#4caf50","secondary-container":"#85f6e5","on-primary-fixed-variant":"#005313","surface-dim":"#cfdce4","tertiary-fixed":"#ffdbcf","on-primary-fixed":"#002204"},"borderRadius":{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},"spacing":{"space-lg":"1rem","space-xs":"0.25rem","space-xl":"1.5rem","gutter":"1rem","margin-desktop":"2rem","gutter-desktop":"1.5rem","margin":"1rem","space-sm":"0.5rem","space-md":"0.75rem"},"fontFamily":{"body-dense":["Inter"],"headline-section-mobile":["Inter"],"caption-bold":["Inter"],"body-default":["Inter"],"body-medium":["Inter"],"headline-section":["Inter"],"caption":["Inter"],"data-mono-lg":["Geist"],"card-title":["Inter"],"data-mono":["Geist"],"headline-hero-mobile":["Inter"],"headline-hero":["Inter"]},"fontSize":{"body-dense":["13px",{"lineHeight":"18px","fontWeight":"400"}],"headline-section-mobile":["18px",{"lineHeight":"24px","letterSpacing":"-0.02em","fontWeight":"700"}],"caption-bold":["11px",{"lineHeight":"14px","letterSpacing":"0.04em","fontWeight":"600"}],"body-default":["14px",{"lineHeight":"20px","fontWeight":"400"}],"body-medium":["14px",{"lineHeight":"20px","fontWeight":"500"}],"headline-section":["20px",{"lineHeight":"26px","letterSpacing":"-0.02em","fontWeight":"700"}],"caption":["12px",{"lineHeight":"16px","fontWeight":"400"}],"data-mono-lg":["18px",{"lineHeight":"22px","fontWeight":"600"}],"card-title":["16px",{"lineHeight":"22px","fontWeight":"600"}],"data-mono":["13px",{"lineHeight":"16px","fontWeight":"500"}],"headline-hero-mobile":["28px",{"lineHeight":"34px","letterSpacing":"-0.03em","fontWeight":"800"}],"headline-hero":["32px",{"lineHeight":"38px","letterSpacing":"-0.03em","fontWeight":"800"}]}}}}</script></head><body class="bg-background font-body-default text-on-surface"><aside class="fixed left-0 top-0 h-full w-72 bg-card shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-50 flex flex-col justify-between py-space-xl px-space-lg"><div class="flex flex-col gap-space-xl"><div class="flex items-center px-space-xs py-1"><img src="https://lh3.googleusercontent.com/aida-public/AB6AXuA_iaqg5lcsxZ7bFlP2Yny3L_dA4FkCBSDIDqCW0kGXXsb7wh_BY01LvJcJ6fxI2IyxN1ylieTa0poaHouw2MgZE3nA_uFBrEG3HDGRlIep41mA_eigqaoGeJgkg44qSiiBe74G297fgeVE3mmt7nGWS4AZxUdm0EcjIsVOYA9CoFwGR-oBjJoiRQ2XelJkXogUyMaO6c-7Edd3xeOVny_Y58R2OlP6b3RCMya07kh81xbUkRDOCGqG" alt="ServNtrak - Field Service Management" class="h-9 max-h-9 w-auto object-contain"></div><nav class="flex flex-col gap-space-xs" data-active-classes="bg-primary-soft text-primary font-body-medium rounded-xl shadow-[0_1px_3px_rgba(0,0,0,0.04)]"><a aria-current="page" class="flex items-center gap-space-md px-space-md py-space-md transition-all bg-primary-soft text-primary font-body-medium rounded-xl shadow-[0_1px_3px_rgba(0,0,0,0.04)]" data-path="painel" href="#"><span class="material-symbols-outlined text-[20px]">grid_view</span><span class="font-body-medium text-body-medium">Painel</span></a><a class="flex items-center gap-space-md px-space-md py-space-md rounded-xl text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-all" data-path="rotas" href="#"><span class="material-symbols-outlined text-[20px]">near_me</span><span class="font-body-medium text-body-medium">Rotas</span></a><a class="flex items-center gap-space-md px-space-md py-space-md rounded-xl text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-all" data-path="clientes" href="#"><span class="material-symbols-outlined text-[20px]">nature_people</span><span class="font-body-medium text-body-medium">Clientes</span></a><a class="flex items-center gap-space-md px-space-md py-space-md rounded-xl text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-all" data-path="agenda" href="#"><span class="material-symbols-outlined text-[20px]">calendar_month</span><span class="font-body-medium text-body-medium">Agenda</span></a><a class="flex items-center gap-space-md px-space-md py-space-md rounded-xl text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-all" data-path="faturacao" href="#"><span class="material-symbols-outlined text-[20px]">receipt_long</span><span class="font-body-medium text-body-medium">Faturação</span></a><a class="flex items-center gap-space-md px-space-md py-space-md rounded-xl text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-all" data-path="equipas" href="#"><span class="material-symbols-outlined text-[20px]">groups_2</span><span class="font-body-medium text-body-medium">Equipas</span></a></nav></div><div class="flex flex-col gap-space-sm pt-space-md"><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-xl text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-all" data-path="configuracoes" href="#"><span class="material-symbols-outlined text-[20px]">tune</span><span class="font-body-medium text-body-medium">Configurações</span></a><div class="flex items-center justify-between p-space-sm rounded-xl bg-muted/60 mt-space-xs"><div class="flex items-center gap-space-sm"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><div class="flex flex-col"><span class="font-body-medium text-body-dense font-semibold text-on-surface leading-tight">Tiago</span><span class="font-caption text-caption text-on-surface-variant leading-tight">Despacho</span></div></div><button class="text-on-surface-variant hover:text-error transition-colors p-space-xs" type="button"><span class="material-symbols-outlined text-[18px]">logout</span></button></div></div></aside><div class="pl-72"><header class="fixed top-0 left-72 right-0 h-16 bg-card/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 px-margin-desktop flex items-center justify-between"><div class="flex items-center gap-space-lg"><div class="flex items-center gap-space-xs text-on-surface-variant font-caption text-caption"><span class="material-symbols-outlined text-[16px] text-primary">calendar_today</span><span class="font-body-medium text-body-dense text-on-surface font-semibold">Sexta-feira, 1 maio</span><span class="mx-space-xs text-outline-variant">•</span><span class="text-on-surface-variant font-body-dense">Centro de Operações Alentejo</span></div><div class="relative hidden xl:block w-72"><span class="material-symbols-outlined absolute left-space-md top-1/2 -translate-y-1/2 text-[18px] text-on-surface-variant">search</span><input class="w-full h-10 pl-10 pr-space-md bg-background rounded-xl font-body-dense text-body-dense text-on-surface placeholder:text-muted-foreground outline-none focus:bg-card transition-all" placeholder="Pesquisar ordens, piscinas ou técnicos..." type="text"></div></div><div class="flex items-center gap-space-md"><button class="h-10 px-space-md rounded-xl bg-background text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface font-body-medium text-body-dense flex items-center gap-space-xs transition-colors" type="button"><span class="material-symbols-outlined text-[18px]">filter_list</span><span class="">Filtros</span></button><button class="relative w-10 h-10 rounded-xl bg-background text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface flex items-center justify-center transition-colors" type="button"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-2 right-2 w-2 h-2 rounded-full bg-tertiary-container ring-2 ring-card"></span></button><button class="h-10 px-space-lg rounded-xl bg-primary hover:bg-primary-deep text-on-primary font-body-medium text-body-dense font-semibold flex items-center gap-space-xs shadow-[0_1px_3px_rgba(0,0,0,0.04)] transition-colors" type="button"><span class="material-symbols-outlined text-[18px]">add</span><span class="">+ Novo cliente</span></button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></header><main class="relative pt-16 w-full min-h-screen bg-background"><div class="flex flex-col w-full">
+<div class="px-margin-desktop py-space-xl flex flex-col gap-space-xl max-w-[1540px] mx-auto w-full">
+<!-- CABEÇALHO DE BOAS-VINDAS -->
+<header class="flex flex-col lg:flex-row lg:items-center justify-between gap-space-lg">
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-sm">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary-soft text-primary font-caption-bold text-caption-bold">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+            DISPATCH ATIVO
+          </span>
+<span class="font-data-mono text-data-mono text-on-surface-variant">v3.4.12 • Alentejo Sul/Norte</span>
+</div>
+<h1 class="font-headline-hero text-headline-hero text-on-surface tracking-tight">
+          Bom dia, Tiago
+        </h1>
+<p class="font-body-default text-body-default text-on-surface-variant">
+          Operações de Campo • Região Alentejo • Sexta-feira, 1 de maio de 2025
+        </p>
+</div>
+<div class="flex items-center flex-wrap gap-space-sm">
+<!-- Date Selector -->
+<button class="h-11 px-space-lg bg-card rounded-xl shadow-sm text-on-surface hover:bg-surface-container-high transition-colors flex items-center gap-space-sm" type="button">
+<span class="material-symbols-outlined text-[18px] text-primary">calendar_month</span>
+<span class="font-body-medium text-body-medium font-semibold">Hoje, 1 Mai</span>
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">arrow_drop_down</span>
+</button>
+<!-- Filters Trigger with Active Badge -->
+<button class="relative h-11 px-space-lg bg-card rounded-xl shadow-sm text-on-surface hover:bg-surface-container-high transition-colors flex items-center gap-space-sm" type="button">
+<span class="material-symbols-outlined text-[18px] text-on-surface-variant">tune</span>
+<span class="font-body-medium text-body-medium">Filtros</span>
+<span class="w-5 h-5 rounded-full bg-primary text-on-primary font-caption-bold text-[10px] flex items-center justify-center font-bold">4</span>
+</button>
+<!-- Quick Export Report -->
+<button class="h-11 px-space-lg bg-inverse-surface hover:bg-on-surface text-inverse-on-surface rounded-xl shadow-sm font-body-medium text-body-medium flex items-center gap-space-xs transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">ios_share</span>
+<span class="">Exportar Relatório</span>
+</button>
+</div>
+</header>
+<!-- KPI SUMMARY GRID (4 COLUNAS) -->
+<section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-lg">
+<!-- KPI 1: Clientes Activos -->
+<div class="p-space-xl bg-card rounded-2xl shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+<div class="flex items-start justify-between">
+<div class="flex flex-col gap-1">
+<span class="font-caption-bold text-caption text-on-surface-variant tracking-wider uppercase">Clientes Activos</span>
+<div class="flex items-baseline gap-2 mt-1">
+<span class="font-headline-hero text-headline-hero font-extrabold text-on-surface">148</span>
+<span class="font-caption-bold text-caption text-primary flex items-center">
+<span class="material-symbols-outlined text-[16px]">trending_up</span>
+                +6 este mês
+              </span>
+</div>
+</div>
+<div class="w-12 h-12 rounded-xl bg-primary-soft text-primary flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-[26px]">corporate_fare</span>
+</div>
+</div>
+<div class="mt-4 pt-3 flex items-center justify-between text-on-surface-variant font-caption text-caption">
+<span class="">94% retenção contratual</span>
+<span class="font-data-mono text-data-mono text-primary font-medium">Herdades &amp; Quintas</span>
+</div>
+</div>
+<!-- KPI 2: Visitas Hoje -->
+<div class="p-space-xl bg-card rounded-2xl shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+<div class="flex items-start justify-between">
+<div class="flex flex-col gap-1">
+<span class="font-caption-bold text-caption text-on-surface-variant tracking-wider uppercase">Visitas Hoje</span>
+<div class="flex items-baseline gap-2 mt-1">
+<span class="font-headline-hero text-headline-hero font-extrabold text-on-surface">47</span>
+<span class="font-caption-bold text-caption text-on-surface-variant">total</span>
+</div>
+</div>
+<div class="w-12 h-12 rounded-xl bg-surface-container-high text-on-surface flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-[26px]">task_alt</span>
+</div>
+</div>
+<div class="mt-3 flex flex-col gap-2">
+<div class="flex justify-between items-center font-caption text-caption">
+<span class="text-on-surface font-body-medium">22 concluídas (47%)</span>
+<span class="text-tertiary font-caption-bold flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span> 2 pendentes
+            </span>
+</div>
+<div class="w-full h-2 rounded-full bg-muted overflow-hidden flex">
+<div class="h-full bg-primary" style="width: 47%"></div>
+<div class="h-full bg-secondary" style="width: 25%"></div>
+<div class="h-full bg-tertiary-container" style="width: 8%"></div>
+</div>
+</div>
+</div>
+<!-- KPI 3: Em Rota -->
+<div class="p-space-xl bg-card rounded-2xl shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+<div class="flex items-start justify-between">
+<div class="flex flex-col gap-1">
+<span class="font-caption-bold text-caption text-on-surface-variant tracking-wider uppercase">Equipas em Rota</span>
+<div class="flex items-baseline gap-2 mt-1">
+<span class="font-headline-hero text-headline-hero font-extrabold text-on-surface">12</span>
+<span class="font-body-dense text-body-dense text-on-surface-variant">técnicos</span>
+</div>
+</div>
+<div class="w-12 h-12 rounded-xl bg-secondary-container/50 text-secondary flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-[26px]">local_shipping</span>
+</div>
+</div>
+<div class="mt-4 pt-3 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="relative flex h-2.5 w-2.5">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-fixed-dim opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary"></span>
+</span>
+<span class="font-caption-bold text-caption text-on-surface font-semibold">11/12 no horário</span>
+</div>
+<span class="font-data-mono text-data-mono px-2 py-0.5 rounded-md bg-primary-soft text-primary font-bold">92%</span>
+</div>
+</div>
+<!-- KPI 4: Faturação Maio -->
+<div class="p-space-xl bg-card rounded-2xl shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+<div class="flex items-start justify-between">
+<div class="flex flex-col gap-1">
+<span class="font-caption-bold text-caption text-on-surface-variant tracking-wider uppercase">Faturação Maio</span>
+<div class="flex items-baseline gap-2 mt-1">
+<span class="font-headline-hero text-headline-hero font-extrabold text-on-surface">48.210 €</span>
+</div>
+</div>
+<div class="w-12 h-12 rounded-xl bg-warm-soft text-tertiary flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-[26px]">payments</span>
+</div>
+</div>
+<div class="mt-4 pt-3 flex items-center justify-between">
+<span class="font-caption text-caption text-tertiary font-bold flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[16px]">north_east</span>
+            +12% vs mês ant.
+          </span>
+<span class="font-data-mono text-data-mono px-2 py-0.5 rounded-md bg-warm-soft text-tertiary font-bold">Meta 78%</span>
+</div>
+</div>
+</section>
+<!-- SECÇÃO CENTRAL: 65% / 35% SPLIT -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-start">
+<!-- COLUNA ESQUERDA: MAPA OPERACIONAL EM TEMPO REAL (65% -> 8 COLUNAS) -->
+<section class="lg:col-span-8 flex flex-col gap-space-md bg-card p-space-lg rounded-2xl shadow-sm">
+<!-- Header do Mapa & Filtros Rápidos -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="w-3 h-3 rounded-full bg-primary animate-pulse"></div>
+<h2 class="font-headline-section text-headline-section text-on-surface font-bold tracking-tight">
+              Mapa Operacional em Tempo Real
+            </h2>
+<span class="font-caption text-caption text-on-surface-variant px-2 py-0.5 bg-surface-container-high rounded-full">Alentejo</span>
+</div>
+<!-- Quick Filters Pills -->
+<div class="flex items-center flex-wrap gap-1.5">
+<button class="px-3 py-1.5 rounded-xl bg-primary text-on-primary font-caption-bold text-caption font-semibold flex items-center gap-1 shadow-sm transition-transform active:scale-95" type="button">
+<span class="">Todas Carrinhas</span>
+<span class="font-data-mono text-[11px] opacity-80">(12)</span>
+</button>
+<button class="px-3 py-1.5 rounded-xl bg-surface-container-low text-secondary font-caption-bold text-caption hover:bg-secondary-container/40 transition-colors flex items-center gap-1" type="button">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span class="">Piscinas</span>
+<span class="font-data-mono text-[11px]">(18)</span>
+</button>
+<button class="px-3 py-1.5 rounded-xl bg-surface-container-low text-primary-deep font-caption-bold text-caption hover:bg-primary-soft transition-colors flex items-center gap-1" type="button">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+<span class="">Jardins</span>
+<span class="font-data-mono text-[11px]">(29)</span>
+</button>
+<button class="px-3 py-1.5 rounded-xl bg-warm-soft text-tertiary font-caption-bold text-caption hover:bg-error-container/40 transition-colors flex items-center gap-1" type="button">
+<span class="w-2 h-2 rounded-full bg-tertiary"></span>
+<span class="">Alertas</span>
+<span class="font-data-mono text-[11px] font-bold">(2)</span>
+</button>
+</div>
+</div>
+<!-- CANVAS DO MAPA CARTOGRÁFICO RICO COM PINS & OVERLAYS -->
+<div class="relative w-full h-[540px] rounded-xl overflow-hidden bg-[#e5ece2] shadow-inner select-none flex items-center justify-center">
+<!-- Camada Topográfica SVG Simulada de Portugal / Alentejo -->
+<svg class="absolute inset-0 w-full h-full text-outline-variant/30" preserveAspectRatio="none" viewBox="0 0 800 540" xmlns="http://www.w3.org/2000/svg">
+<!-- Curvas de nível topográficas -->
+<path d="M-50 120 C 150 100, 320 220, 520 180 C 680 150, 780 280, 900 240" fill="none" stroke="currentColor" stroke-dasharray="4 6" stroke-width="1.5"></path>
+<path d="M-40 260 C 160 210, 280 340, 480 320 C 650 300, 750 420, 890 380" fill="none" stroke="currentColor" stroke-dasharray="4 6" stroke-width="1.5"></path>
+<path d="M-20 400 C 180 360, 360 480, 560 430 C 720 390, 810 520, 920 480" fill="none" stroke="currentColor" stroke-dasharray="4 6" stroke-width="1.5"></path>
+<!-- Rios / Linhas de Água (Sado, Mira) -->
+<path d="M 60 540 C 120 420, 180 320, 240 210 C 260 180, 270 110, 250 0" fill="none" opacity="0.45" stroke="#67d9c9" stroke-width="3"></path>
+<path d="M 240 210 C 310 240, 410 230, 490 280" fill="none" opacity="0.35" stroke="#67d9c9" stroke-width="1.8"></path>
+<!-- Redes de Estradas Principais (IC1, IP2, A2, N120) -->
+<path d="M 120 540 L 260 310 L 410 240 L 610 110" fill="none" opacity="0.9" stroke="#ffffff" stroke-width="4"></path>
+<path d="M 120 540 L 260 310 L 410 240 L 610 110" fill="none" stroke="#becab9" stroke-width="1.5"></path>
+<path d="M 260 310 L 290 490 L 490 520" fill="none" opacity="0.8" stroke="#ffffff" stroke-width="3"></path>
+<path d="M 410 240 L 590 340 L 730 460" fill="none" opacity="0.8" stroke="#ffffff" stroke-width="3"></path>
+<path d="M 210 110 L 410 240 L 320 420" fill="none" stroke="#becab9" stroke-dasharray="3 3" stroke-width="1.5"></path>
+<!-- Rota Tracejada Carrinha #04: De Grândola para Hillcrest #14 (Comporta) -->
+<path class="animate-pulse" d="M 230 180 Q 255 145 285 125" fill="none" stroke="#006e1c" stroke-dasharray="6 6" stroke-linecap="round" stroke-width="3.5"></path>
+<!-- Rota Tracejada Carrinha #07: De Alvito para Évora Norte -->
+<path d="M 450 310 Q 510 260 580 160" fill="none" stroke="#006a60" stroke-dasharray="5 5" stroke-linecap="round" stroke-width="2.5"></path>
+</svg>
+<!-- Rótulos Geográficos do Terreno -->
+<span class="absolute top-16 left-28 font-caption-bold text-[11px] tracking-widest uppercase text-on-surface-variant/40 pointer-events-none">Comporta</span>
+<span class="absolute top-36 left-48 font-caption-bold text-[11px] tracking-widest uppercase text-on-surface-variant/40 pointer-events-none">Grândola</span>
+<span class="absolute top-24 right-44 font-headline-section text-[14px] font-bold tracking-widest uppercase text-on-surface-variant/30 pointer-events-none">Évora</span>
+<span class="absolute bottom-28 left-64 font-caption-bold text-[11px] tracking-widest uppercase text-on-surface-variant/40 pointer-events-none">Alvito</span>
+<span class="absolute bottom-16 right-36 font-headline-section text-[14px] font-bold tracking-widest uppercase text-on-surface-variant/30 pointer-events-none">Beja</span>
+<!-- PINS NO MAPA -->
+<!-- Pin 1: Piscina (Comporta - Hillcrest #14) -->
+<div class="absolute top-28 left-64 -translate-x-1/2 -translate-y-1/2 z-20 group cursor-pointer">
+<div class="relative flex items-center justify-center">
+<span class="absolute -inset-2 bg-secondary-fixed-dim/40 rounded-full animate-ping"></span>
+<div class="w-9 h-9 rounded-full bg-secondary text-on-secondary shadow-md flex items-center justify-center hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-[19px]">pool</span>
+</div>
+</div>
+<div class="hidden group-hover:block absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1 bg-inverse-surface text-inverse-on-surface font-caption text-caption rounded-lg whitespace-nowrap shadow-lg">
+              Hillcrest #14 (Piscina)
+            </div>
+</div>
+<!-- Pin 2: Carrinha #04 (Tiago Ferreira - Em Trânsito) -->
+<div class="absolute top-44 left-52 -translate-x-1/2 -translate-y-1/2 z-30 group cursor-pointer">
+<div class="flex items-center gap-1.5 bg-primary text-on-primary pl-2 pr-3 py-1.5 rounded-full shadow-lg hover:scale-105 transition-transform ring-4 ring-primary/20">
+<span class="material-symbols-outlined text-[17px] animate-spin">navigation</span>
+<div class="flex flex-col leading-none">
+<span class="font-caption-bold text-[11px] tracking-tight">#04 Tiago</span>
+<span class="font-data-mono text-[9px] text-primary-fixed opacity-90">ETA 8m</span>
+</div>
+</div>
+</div>
+<!-- Pin 3: Alerta Manutenção (Avaria de Bomba - Évora Sul) -->
+<div class="absolute top-52 right-72 -translate-x-1/2 -translate-y-1/2 z-20 group cursor-pointer">
+<div class="relative flex items-center justify-center">
+<span class="absolute -inset-2 bg-tertiary-container/30 rounded-full animate-ping"></span>
+<div class="w-10 h-10 rounded-full bg-tertiary text-on-tertiary shadow-md flex items-center justify-center hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-[20px]">warning</span>
+</div>
+</div>
+<div class="absolute top-full left-1/2 -translate-x-1/2 mt-1 px-2 py-0.5 bg-warm-soft text-tertiary font-caption-bold text-[10px] rounded-md shadow whitespace-nowrap">
+              Bomba Bloqueada
+            </div>
+</div>
+<!-- Pin 4: Jardim Concluído (Herdade das Oliveiras) -->
+<div class="absolute bottom-36 left-96 -translate-x-1/2 -translate-y-1/2 z-10 group cursor-pointer">
+<div class="w-8 h-8 rounded-full bg-primary text-on-primary shadow flex items-center justify-center hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-[17px]">yard</span>
+</div>
+<div class="hidden group-hover:block absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2 py-0.5 bg-inverse-surface text-inverse-on-surface font-caption text-caption rounded-md whitespace-nowrap">
+              Herdade das Oliveiras • Corte Concluído
+            </div>
+</div>
+<!-- Pin 5: Carrinha #02 (Mário Silva - Intervenção Quinta da Aldegalega) -->
+<div class="absolute top-28 right-32 -translate-x-1/2 -translate-y-1/2 z-20 group cursor-pointer">
+<div class="flex items-center gap-1.5 bg-card text-on-surface pl-1.5 pr-2.5 py-1 rounded-full shadow-md hover:scale-105 transition-transform">
+<div class="w-6 h-6 rounded-full bg-secondary text-on-secondary flex items-center justify-center">
+<span class="material-symbols-outlined text-[14px]">water_drop</span>
+</div>
+<div class="flex flex-col leading-none">
+<span class="font-body-dense text-[11px] font-bold">#02 Mário</span>
+<span class="font-caption text-[9px] text-on-surface-variant">Em serviço</span>
+</div>
+</div>
+</div>
+<!-- Pin 6: Carrinha #07 (João Pires - Rota Alvito) -->
+<div class="absolute bottom-24 right-56 -translate-x-1/2 -translate-y-1/2 z-20 group cursor-pointer">
+<div class="flex items-center gap-1 bg-surface-container-high text-on-surface px-2.5 py-1 rounded-full shadow hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[15px] text-primary">local_shipping</span>
+<span class="font-body-dense text-[11px] font-medium">#07 João P.</span>
+</div>
+</div>
+<!-- MINI OVERLAY FLUTUANTE DE INTERVENÇÃO SELECIONADA -->
+<div class="absolute bottom-5 left-5 z-40 max-w-sm w-full bg-card/95 backdrop-blur-md p-4 rounded-xl shadow-xl flex flex-col gap-2.5">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-lg bg-secondary-container/60 text-secondary flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">pool</span>
+</div>
+<div class="flex flex-col">
+<span class="font-card-title text-card-title font-bold text-on-surface leading-tight">Hillcrest #14</span>
+<span class="font-caption text-caption text-on-surface-variant">Comporta, Troia Resort</span>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-primary-soft text-primary font-caption-bold text-[10px]">EM ROTA</span>
+</div>
+<div class="p-2.5 bg-background rounded-lg flex flex-col gap-1">
+<div class="flex items-center justify-between text-on-surface font-caption text-caption">
+<span class="text-on-surface-variant">Serviço:</span>
+<span class="font-body-medium font-semibold text-secondary">Tratamento de algas &amp; pH</span>
+</div>
+<div class="flex items-center justify-between text-on-surface font-caption text-caption">
+<span class="text-on-surface-variant">Técnico atribuído:</span>
+<span class="font-body-medium">Tiago Ferreira (Carrinha #04)</span>
+</div>
+<div class="flex items-center justify-between text-on-surface font-caption text-caption">
+<span class="text-on-surface-variant">Previsão Chegada:</span>
+<span class="font-data-mono text-data-mono font-bold text-primary">09:45 (em 8 min)</span>
+</div>
+</div>
+<div class="flex items-center gap-2 pt-1">
+<button class="flex-1 py-1.5 bg-primary text-on-primary rounded-lg font-caption-bold text-caption font-semibold hover:bg-primary-deep transition-colors text-center" type="button">
+                Contactar Técnico
+              </button>
+<button class="p-1.5 bg-surface-container-high text-on-surface rounded-lg hover:bg-surface-variant transition-colors" title="Ver Detalhes do Cliente" type="button">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+</button>
+</div>
+</div>
+<!-- Controlos Flutuantes do Mapa (Zoom & Trânsito) -->
+<div class="absolute top-4 right-4 z-30 flex flex-col gap-1.5 bg-card/90 backdrop-blur-sm p-1 rounded-xl shadow-md">
+<button class="w-8 h-8 rounded-lg hover:bg-surface-container-high text-on-surface flex items-center justify-center transition-colors" title="Aumentar Zoom" type="button">
+<span class="material-symbols-outlined text-[18px]">add</span>
+</button>
+<button class="w-8 h-8 rounded-lg hover:bg-surface-container-high text-on-surface flex items-center justify-center transition-colors" title="Diminuir Zoom" type="button">
+<span class="material-symbols-outlined text-[18px]">remove</span>
+</button>
+<div class="w-full h-px bg-outline-variant/30 my-0.5"></div>
+<button class="w-8 h-8 rounded-lg bg-primary-soft text-primary flex items-center justify-center transition-colors" title="Trânsito em Tempo Real" type="button">
+<span class="material-symbols-outlined text-[18px]">traffic</span>
+</button>
+<button class="w-8 h-8 rounded-lg hover:bg-surface-container-high text-on-surface flex items-center justify-center transition-colors" title="Centralizar Frota" type="button">
+<span class="material-symbols-outlined text-[18px]">my_location</span>
+</button>
+</div>
+</div>
+<!-- Rodapé do Mapa com Resumo de Frotas -->
+<div class="flex flex-wrap items-center justify-between text-on-surface-variant font-caption text-caption pt-1">
+<div class="flex items-center gap-space-lg">
+<span class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-primary"></span>
+              9 Técnicos em execução
+            </span>
+<span class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-secondary"></span>
+              3 Técnicos em trânsito
+            </span>
+<span class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-tertiary"></span>
+              1 Intervenção prioritária
+            </span>
+</div>
+<span class="font-data-mono text-[11px]">Atualizado há 14s via GSM</span>
+</div>
+</section>
+<!-- COLUNA DIREITA: VISITAS DA SEMANA + FEED DE ATIVIDADE (35% -> 4 COLUNAS) -->
+<div class="lg:col-span-4 flex flex-col gap-space-lg">
+<!-- CARTÃO: VISITAS DA SEMANA (GRÁFICO BICOLOR) -->
+<div class="bg-card p-space-xl rounded-2xl shadow-sm flex flex-col gap-space-md">
+<div class="flex items-start justify-between">
+<div class="flex flex-col">
+<span class="font-caption-bold text-caption text-on-surface-variant tracking-wider uppercase">Visitas da Semana</span>
+<div class="flex items-baseline gap-2 mt-1">
+<span class="font-headline-section text-headline-section font-bold text-on-surface">328</span>
+<span class="font-caption-bold text-caption text-primary flex items-center">
+<span class="material-symbols-outlined text-[14px]">trending_up</span>
+                  +18% vs semana ant.
+                </span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<span class="inline-flex items-center gap-1 text-[11px] font-caption text-on-surface-variant">
+<span class="w-2 h-2 rounded-sm bg-primary"></span> JARDINS
+              </span>
+<span class="inline-flex items-center gap-1 text-[11px] font-caption text-on-surface-variant">
+<span class="w-2 h-2 rounded-sm bg-secondary"></span> PISCINAS
+              </span>
+</div>
+</div>
+<!-- Gráfico de Barras Bicolores Estilizado (Seg a Dom) -->
+<div class="flex items-end justify-between gap-2 h-44 pt-4 px-1">
+<!-- Seg -->
+<div class="flex-1 flex flex-col items-center gap-2 h-full justify-end group">
+<div class="w-full max-w-[28px] flex flex-col rounded-t-md overflow-hidden transition-all group-hover:opacity-90">
+<div class="bg-secondary w-full" style="height: 18px;" title="Piscinas: 14"></div>
+<div class="bg-primary w-full" style="height: 38px;" title="Jardins: 28"></div>
+</div>
+<span class="font-caption text-[11px] text-on-surface-variant">Seg</span>
+</div>
+<!-- Ter -->
+<div class="flex-1 flex flex-col items-center gap-2 h-full justify-end group">
+<div class="w-full max-w-[28px] flex flex-col rounded-t-md overflow-hidden transition-all group-hover:opacity-90">
+<div class="bg-secondary w-full" style="height: 22px;" title="Piscinas: 18"></div>
+<div class="bg-primary w-full" style="height: 44px;" title="Jardins: 32"></div>
+</div>
+<span class="font-caption text-[11px] text-on-surface-variant">Ter</span>
+</div>
+<!-- Qua -->
+<div class="flex-1 flex flex-col items-center gap-2 h-full justify-end group">
+<div class="w-full max-w-[28px] flex flex-col rounded-t-md overflow-hidden transition-all group-hover:opacity-90">
+<div class="bg-secondary w-full" style="height: 20px;" title="Piscinas: 16"></div>
+<div class="bg-primary w-full" style="height: 40px;" title="Jardins: 30"></div>
+</div>
+<span class="font-caption text-[11px] text-on-surface-variant">Qua</span>
+</div>
+<!-- Qui -->
+<div class="flex-1 flex flex-col items-center gap-2 h-full justify-end group">
+<div class="w-full max-w-[28px] flex flex-col rounded-t-md overflow-hidden transition-all group-hover:opacity-90">
+<div class="bg-secondary w-full" style="height: 26px;" title="Piscinas: 20"></div>
+<div class="bg-primary w-full" style="height: 48px;" title="Jardins: 35"></div>
+</div>
+<span class="font-caption text-[11px] text-on-surface-variant">Qui</span>
+</div>
+<!-- Sex (Hoje - Destacada) -->
+<div class="flex-1 flex flex-col items-center gap-2 h-full justify-end group">
+<div class="w-full max-w-[32px] p-0.5 rounded-t-lg bg-primary-soft flex flex-col items-center">
+<div class="w-full flex flex-col rounded-t-md overflow-hidden shadow-sm">
+<div class="bg-secondary w-full" style="height: 32px;" title="Piscinas: 24"></div>
+<div class="bg-primary w-full" style="height: 58px;" title="Jardins: 42"></div>
+</div>
+</div>
+<span class="font-caption-bold text-[11px] text-primary font-bold">Sex</span>
+</div>
+<!-- Sab -->
+<div class="flex-1 flex flex-col items-center gap-2 h-full justify-end group">
+<div class="w-full max-w-[28px] flex flex-col rounded-t-md overflow-hidden opacity-50">
+<div class="bg-secondary w-full" style="height: 12px;"></div>
+<div class="bg-primary w-full" style="height: 18px;"></div>
+</div>
+<span class="font-caption text-[11px] text-on-surface-variant">Sáb</span>
+</div>
+<!-- Dom -->
+<div class="flex-1 flex flex-col items-center gap-2 h-full justify-end group">
+<div class="w-full max-w-[28px] flex flex-col rounded-t-md overflow-hidden opacity-40">
+<div class="bg-secondary w-full" style="height: 6px;"></div>
+<div class="bg-primary w-full" style="height: 8px;"></div>
+</div>
+<span class="font-caption text-[11px] text-on-surface-variant">Dom</span>
+</div>
+</div>
+<div class="pt-2 flex items-center justify-between text-on-surface-variant font-caption text-caption">
+<span class="">Pico previsto: <strong>Sábado (Comporta)</strong></span>
+<span class="font-data-mono text-primary font-semibold">47 visitas hoje</span>
+</div>
+</div>
+<!-- CARTÃO: FEED DE ATIVIDADE EM TEMPO REAL (LIVE LOG) -->
+<div class="bg-card p-space-xl rounded-2xl shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between pb-space-sm">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[20px] text-primary">history</span>
+<h3 class="font-headline-section text-card-title font-bold text-on-surface">Feed de Atividade</h3>
+</div>
+<span class="flex items-center gap-1 font-caption text-[11px] text-on-surface-variant">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span> Em direto
+            </span>
+</div>
+<!-- Timeline Items -->
+<div class="flex flex-col gap-space-md py-space-sm relative">
+<!-- Timeline line decor -->
+<div class="absolute top-4 bottom-4 left-4 w-px bg-outline-variant/40"></div>
+<!-- Item 1: 09:40 Tiago Ferreira Em Rota -->
+<div class="relative flex items-start gap-3 pl-1">
+<div class="w-7 h-7 rounded-full bg-primary text-on-primary flex items-center justify-center shadow-sm z-10 shrink-0">
+<span class="material-symbols-outlined text-[15px]">near_me</span>
+</div>
+<div class="flex flex-col gap-0.5 flex-1 min-w-0">
+<div class="flex items-center justify-between gap-1">
+<span class="font-body-medium text-body-dense font-semibold text-on-surface truncate">Tiago Ferreira</span>
+<span class="font-data-mono text-[11px] text-on-surface-variant shrink-0">09:40</span>
+</div>
+<p class="font-caption text-caption text-on-surface-variant line-clamp-2">
+                  Iniciou rota para <strong class="text-on-surface">Hillcrest #14</strong> (Comporta)
+                </p>
+<div class="flex items-center gap-2 mt-1">
+<span class="px-2 py-0.5 rounded-full bg-primary-soft text-primary font-caption-bold text-[10px]">Em rota • ETA 8m</span>
+<span class="font-caption text-[11px] text-on-surface-variant">Carrinha #04</span>
+</div>
+</div>
+</div>
+<!-- Item 2: 09:15 Família Coronado Concluída -->
+<div class="relative flex items-start gap-3 pl-1">
+<div class="w-7 h-7 rounded-full bg-primary-soft text-primary flex items-center justify-center shadow-sm z-10 shrink-0">
+<span class="material-symbols-outlined text-[16px]">check_circle</span>
+</div>
+<div class="flex flex-col gap-0.5 flex-1 min-w-0">
+<div class="flex items-center justify-between gap-1">
+<span class="font-body-medium text-body-dense font-semibold text-on-surface truncate">Família Coronado</span>
+<span class="font-data-mono text-[11px] text-on-surface-variant shrink-0">09:15</span>
+</div>
+<p class="font-caption text-caption text-on-surface-variant line-clamp-2">
+                  Concluída por Tiago. Relatório de poda e relva registado via voz.
+                </p>
+<div class="flex items-center gap-2 mt-1">
+<span class="px-2 py-0.5 rounded-full bg-primary-soft text-primary font-caption-bold text-[10px] flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">mic</span> Áudio validado
+                  </span>
+<span class="font-caption text-[11px] text-on-surface-variant">Jardim • 45 min</span>
+</div>
+</div>
+</div>
+<!-- Item 3: 08:50 Alerta Cloro Baixo -->
+<div class="relative flex items-start gap-3 pl-1">
+<div class="w-7 h-7 rounded-full bg-warm-soft text-tertiary flex items-center justify-center shadow-sm z-10 shrink-0">
+<span class="material-symbols-outlined text-[16px]">warning</span>
+</div>
+<div class="flex flex-col gap-0.5 flex-1 min-w-0">
+<div class="flex items-center justify-between gap-1">
+<span class="font-body-medium text-body-dense font-semibold text-tertiary truncate">Herdade do Pinheiro</span>
+<span class="font-data-mono text-[11px] text-on-surface-variant shrink-0">08:50</span>
+</div>
+<p class="font-caption text-caption text-on-surface-variant line-clamp-2">
+                  Alerta de cloro baixo registado por Rui Bento (0.4 ppm).
+                </p>
+<div class="flex items-center gap-2 mt-1">
+<span class="px-2 py-0.5 rounded-full bg-warm-soft text-tertiary font-caption-bold text-[10px]">Alerta Par��metro</span>
+<span class="font-caption text-[11px] text-on-surface-variant">Tratamento de choque</span>
+</div>
+</div>
+</div>
+<!-- Item 4: 08:30 Quinta da Aldegalega Concluída -->
+<div class="relative flex items-start gap-3 pl-1">
+<div class="w-7 h-7 rounded-full bg-primary-soft text-primary flex items-center justify-center shadow-sm z-10 shrink-0">
+<span class="material-symbols-outlined text-[16px]">check_circle</span>
+</div>
+<div class="flex flex-col gap-0.5 flex-1 min-w-0">
+<div class="flex items-center justify-between gap-1">
+<span class="font-body-medium text-body-dense font-semibold text-on-surface truncate">Quinta da Aldegalega</span>
+<span class="font-data-mono text-[11px] text-on-surface-variant shrink-0">08:30</span>
+</div>
+<p class="font-caption text-caption text-on-surface-variant line-clamp-2">
+                  Piscina limpa e teste cloro OK por Mário Silva.
+                </p>
+<div class="flex items-center gap-2 mt-1">
+<span class="px-2 py-0.5 rounded-full bg-accent-soft text-secondary font-caption-bold text-[10px]">pH 7.2 • Cl 1.5</span>
+<span class="font-caption text-[11px] text-on-surface-variant">Carrinha #02</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Rodapé do Live Log -->
+<div class="pt-space-md border-t border-border/40 mt-1">
+<button class="w-full py-2.5 rounded-xl bg-surface-container-high hover:bg-surface-variant text-on-surface font-body-medium text-body-dense font-medium flex items-center justify-center gap-2 transition-colors" type="button">
+<span class="">Ver todo o histórico (47 eventos)</span>
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div></main></div>
+
+</body></html>

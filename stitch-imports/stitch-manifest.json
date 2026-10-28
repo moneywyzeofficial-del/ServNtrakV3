@@ -1,0 +1,105 @@
+[
+  {
+    "title": "DESIGN.md",
+    "screenName": "projects/4150947803542053750/screens/5824063743954576090",
+    "localFile": "DESIGN.md.html",
+    "downloadUrl": "https://stitch.googleapis.com/v1/projects/4150947803542053750/files/5824063743954579433:download"
+  },
+  {
+    "title": "Despacho Web · Painel de Gestão",
+    "screenName": "projects/4150947803542053750/screens/d59f944c1a6b4f38b700f112623e2e53",
+    "deviceType": "DESKTOP",
+    "localFile": "Despacho Web · Painel de Gestão.html",
+    "downloadUrl": "https://stitch.googleapis.com/v1/projects/4150947803542053750/files/3615143446602276060:download"
+  },
+  {
+    "title": "Técnico Móvel · Lista de Clientes",
+    "screenName": "projects/4150947803542053750/screens/d55e4404c8e74065bdf24f503f9b6c3b",
+    "deviceType": "MOBILE",
+    "localFile": "Técnico Móvel · Lista de Clientes.html",
+    "downloadUrl": "https://stitch.googleapis.com/v1/projects/4150947803542053750/files/17274793602767720528:download"
+  },
+  {
+    "title": "Técnico Móvel · Splash / Abertura",
+    "screenName": "projects/4150947803542053750/screens/777c004e84e646c790ac14951d718ac7",
+    "deviceType": "MOBILE",
+    "localFile": "Técnico Móvel · Splash - Abertura.html",
+    "downloadUrl": "https://stitch.googleapis.com/v1/projects/4150947803542053750/files/777c004e84e646c790ac14951d718ac7:download"
+  },
+  {
+    "title": "Técnico Móvel · Agenda",
+    "screenName": "projects/4150947803542053750/screens/75d6462841cc42b894b710ce2a6a54d4",
+    "deviceType": "MOBILE",
+    "localFile": "Técnico Móvel · Agenda.html",
+    "downloadUrl": "https://stitch.googleapis.com/v1/projects/4150947803542053750/files/18295909543748329586:download"
+  },
+  {
+    "title": "Técnico Móvel · Login Principal",
+    "screenName": "projects/4150947803542053750/screens/33fa817d0ad54c7ab5274fb92017257b",
+    "deviceType": "MOBILE",
+    "localFile": "Técnico Móvel · Login Principal.html",
+    "downloadUrl": "https://stitch.googleapis.com/v1/projects/4150947803542053750/files/33fa817d0ad54c7ab5274fb92017257b:download"
+  },
+  {
+    "title": "Técnico Móvel · Autenticação por PIN",
+    "screenName": "projects/4150947803542053750/screens/8d2027c505e64195b96c830b3d01fa65",
+    "deviceType": "MOBILE",
+    "localFile": "Técnico Móvel · Autenticação por PIN.html",
+    "downloadUrl": "https://stitch.googleapis.com/v1/projects/4150947803542053750/files/8d2027c505e64195b96c830b3d01fa65:download"
+  },
+  {
+    "title": "Técnico Móvel · Detalhe do Cliente",
+    "screenName": "projects/4150947803542053750/screens/3115716b3871475c867977cd14d83953",
+    "deviceType": "MOBILE",
+    "localFile": "Técnico Móvel · Detalhe do Cliente.html",
+    "downloadUrl": "https://stitch.googleapis.com/v1/projects/4150947803542053750/files/3115716b3871475c867977cd14d83953:download"
+  },
+  {
+    "title": "Técnico Móvel · Início",
+    "screenName": "projects/4150947803542053750/screens/3ce47d2070e94242a4e1d671f7479899",
+    "deviceType": "MOBILE",
+    "localFile": "Técnico Móvel · Início.html",
+    "downloadUrl": "https://stitch.googleapis.com/v1/projects/4150947803542053750/files/7223678587285316556:download"
+  },
+  {
+    "title": "Técnico Móvel · Perfil & Definições",
+    "screenName": "projects/4150947803542053750/screens/1bfd3e86fa964e97a00ff10b65e4dde0",
+    "deviceType": "MOBILE",
+    "localFile": "Técnico Móvel · Perfil & Definições.html",
+    "downloadUrl": "https://stitch.googleapis.com/v1/projects/4150947803542053750/files/1bfd3e86fa964e97a00ff10b65e4dde0:download"
+  },
+  {
+    "title": "Técnico Móvel · Relatórios de Serviço",
+    "screenName": "projects/4150947803542053750/screens/95b6c6430f7d443eb3571a56282871f1",
+    "deviceType": "MOBILE",
+    "localFile": "Técnico Móvel · Relatórios de Serviço.html",
+    "downloadUrl": "https://stitch.googleapis.com/v1/projects/4150947803542053750/files/3066409459916348633:download"
+  },
+  {
+    "title": "Técnico Móvel · Agenda (Variante Produtividade & Blocos)",
+    "screenName": "projects/4150947803542053750/screens/cf85bc489bbc4da894e9e5beb32251a8",
+    "deviceType": "MOBILE",
+    "localFile": "Técnico Móvel · Agenda (Variante Produtividade & Blocos).html",
+    "downloadUrl": "https://stitch.googleapis.com/v1/projects/4150947803542053750/files/cf85bc489bbc4da894e9e5beb32251a8:download"
+  },
+  {
+    "title": "Técnico Móvel · Atribuição de Viatura & Início de Turno",
+    "screenName": "projects/4150947803542053750/screens/f92929315d8041ca8f5acfae08b556f7",
+    "deviceType": "MOBILE",
+    "localFile": "Técnico Móvel · Atribuição de Viatura & Início de Turno.html",
+    "downloadUrl": "https://stitch.googleapis.com/v1/projects/4150947803542053750/files/f92929315d8041ca8f5acfae08b556f7:download"
+  },
+  {
+    "title": "STITCH_PROMPTS.md",
+    "screenName": "projects/4150947803542053750/screens/5824063743954578680",
+    "localFile": "STITCH_PROMPTS.md.html",
+    "downloadUrl": "https://stitch.googleapis.com/v1/projects/4150947803542053750/files/5824063743954577927:download"
+  },
+  {
+    "title": "Técnico Móvel · Agenda (Variante Rota & Mapa)",
+    "screenName": "projects/4150947803542053750/screens/535cbcb807d14b09bdcafc3ef63c8dbb",
+    "deviceType": "MOBILE",
+    "localFile": "Técnico Móvel · Agenda (Variante Rota & Mapa).html",
+    "downloadUrl": "https://stitch.googleapis.com/v1/projects/4150947803542053750/files/535cbcb807d14b09bdcafc3ef63c8dbb:download"
+  }
+]

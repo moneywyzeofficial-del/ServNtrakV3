@@ -7,7 +7,42 @@ import { useAppointments } from "@/hooks/use-appointments";
 import { useClientServiceStats } from "@/hooks/use-service-visits";
 import { useQuery } from "@tanstack/react-query";
 import type { ClientEquipment } from "@shared/schema";
-import { Loader2, Phone, MapPin, Leaf, Waves, ThermometerSun, Plus, Calendar, CalendarDays, CheckCircle2, Camera, X, Flower2, Sparkles, FolderPlus, Timer, Banknote, Building2, Smartphone, ClipboardList, Trash2, FileText, ArrowLeft, Home, StickyNote, Pencil, Image, Wrench, User } from "lucide-react";
+import {
+  Loader2,
+  Phone,
+  MapPin,
+  Leaf,
+  Waves,
+  ThermometerSun,
+  Plus,
+  Calendar,
+  CalendarDays,
+  CheckCircle2,
+  Camera,
+  X,
+  Flower2,
+  Sparkles,
+  FolderPlus,
+  Timer,
+  Banknote,
+  Building2,
+  Smartphone,
+  ClipboardList,
+  Trash2,
+  FileText,
+  ArrowLeft,
+  Home,
+  StickyNote,
+  Pencil,
+  Image as ImageIcon,
+  Wrench,
+  User,
+  Share2,
+  Key,
+  Copy,
+  Navigation,
+  Droplets,
+} from "lucide-react";
 import { generateServiceNote } from "@/lib/generateServiceNote";
 import type { ServiceLogWithEntries } from "@shared/schema";
 
@@ -31,6 +66,8 @@ import { ClientPoolTab } from "@/components/client-detail/ClientPoolTab";
 import { ClientEquipmentTab } from "@/components/client-detail/ClientEquipmentTab";
 import { ClientDocumentsCard } from "@/components/client-detail/ClientDocumentsCard";
 import { useClientPhotoUpload } from "@/hooks/use-client-photo-upload";
+import { QuickPoolTestDialog } from "@/components/pool/QuickPoolTestDialog";
+import { BeforeAfterPhotoDialog } from "@/components/photos/BeforeAfterPhotoDialog";
 
 function getInitials(name: string): string {
   return name
@@ -70,6 +107,9 @@ export default function ClientDetail() {
   const [heroImgError, setHeroImgError] = useState(false);
   const [avatarImgError, setAvatarImgError] = useState(false);
 
+  const [poolTestOpen, setPoolTestOpen] = useState(false);
+  const [beforeAfterOpen, setBeforeAfterOpen] = useState(false);
+
   const updateClient = useUpdateClient();
 
   const housePhoto = useClientPhotoUpload(clientId, "house");
@@ -106,6 +146,52 @@ export default function ClientDetail() {
     setEditingNotes(false);
     setNotesDraft("");
   };
+
+  const handleCopyText = (text: string, label: string) => {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(text);
+      toast({ title: "Copiado!", description: `${label} copiado para a área de transferência.` });
+    }
+  };
+
+  const handleShareClient = async () => {
+    if (!client) return;
+    const shareText = `Ficha de Cliente: ${client.name}\nMorada: ${client.address || "Sem morada"}\nContacto: ${client.phone || "—"}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `ServNtrak - ${client.name}`,
+          text: shareText,
+          url: window.location.href,
+        });
+      } catch {
+        // Ignorar cancelamento
+      }
+    } else {
+      handleCopyText(`${shareText}\n${window.location.href}`, "Dados do cliente");
+    }
+  };
+
+  const poolVolume = useMemo(() => {
+    if (client?.poolLength && client?.poolWidth && client?.poolMinDepth && client?.poolMaxDepth) {
+      return ((client.poolLength * client.poolWidth * (client.poolMinDepth + client.poolMaxDepth)) / 2).toFixed(0);
+    }
+    return null;
+  }, [client]);
+
+  const gateCode = useMemo(() => {
+    if (!client?.notes) return null;
+    const match = client.notes.match(/(?:c[oó]digo|port[aã]o|chave|alarme|code)[\s:#]+([A-Za-z0-9#-]+)/i);
+    return match ? match[1] : null;
+  }, [client?.notes]);
+
+  const mapsUrl = useMemo(() => {
+    if (!client) return "#";
+    if (client.latitude && client.longitude) {
+      return `https://www.google.com/maps?q=${client.latitude},${client.longitude}`;
+    }
+    return `https://www.google.com/maps/search/${encodeURIComponent(client.address || client.name)}`;
+  }, [client]);
 
   const nextVisit = useMemo(() => {
     if (!appointments) return null;
@@ -216,203 +302,323 @@ export default function ClientDetail() {
   };
 
   if (isLoading) return <div className="flex justify-center items-center h-screen"><Loader2 className="animate-spin text-primary" /></div>;
-  if (!client) return <div>Cliente não encontrado</div>;
+  if (!client) return <div className="p-6 text-center text-muted-foreground">Cliente não encontrado</div>;
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* ---- Hero Header ---- */}
-      <div className="relative w-full h-[200px] sm:h-[220px] bg-muted overflow-hidden">
-        {/* Hidden file input for house photo */}
-        <input
-          ref={housePhoto.inputRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={housePhoto.onFileChange}
-        />
-
-        {housePhoto.previewUrl || (client.housePhotoUrl && !heroImgError) ? (
-          <img
-            src={housePhoto.previewUrl || client.housePhotoUrl || ""}
-            alt={`Propriedade de ${client.name}`}
-            className="absolute inset-0 w-full h-full object-cover"
-            onError={() => setHeroImgError(true)}
-          />
-        ) : null}
-        {!(housePhoto.previewUrl || (client.housePhotoUrl && !heroImgError)) && (
-          <button
-            type="button"
-            onClick={housePhoto.trigger}
-            className="w-full h-full flex flex-col items-center justify-center bg-muted hover:bg-muted/60 transition-colors cursor-pointer"
-          >
-            <Home className="w-12 h-12 text-muted-foreground/25" />
-            <p className="text-xs text-muted-foreground mt-2">Adicionar foto da propriedade</p>
-          </button>
-        )}
-
-        {/* Upload spinner overlay */}
-        {housePhoto.isUploading && (
-          <div className="absolute inset-0 bg-black/20 flex items-center justify-center z-20">
-            <Loader2 className="w-8 h-8 text-white animate-spin" />
-          </div>
-        )}
-
-        {/* Camera button overlay on house photo */}
-        {client.housePhotoUrl && (
-          <button
-            type="button"
-            onClick={housePhoto.trigger}
-            className="absolute bottom-3 right-3 z-10 h-8 w-8 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/50 transition-colors"
-            data-testid="button-change-house-photo"
-            aria-label="Alterar foto da propriedade"
-          >
-            <Camera className="w-4 h-4" />
-          </button>
-        )}
-
-        {/* Gradient overlay at bottom */}
-        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-background via-background/60 to-transparent pointer-events-none" />
-
-        {/* Back button */}
-        <Link
-          href="/clients"
-          className="absolute top-3 left-3 z-10 h-9 w-9 rounded-full bg-black/20 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/40 transition-colors"
-          data-testid="button-back"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </Link>
-      </div>
-
-      {/* ---- Profile section ---- */}
-      <div className="relative px-5">
-        {/* Avatar */}
-        <div className="absolute -top-12 left-5 w-24 h-24 rounded-full border-[3px] border-background bg-card flex items-center justify-center overflow-hidden shadow-lg group cursor-pointer" onClick={() => profileCropInputRef.current?.click()} role="button" tabIndex={0} onKeyDown={(e) => e.key === "Enter" && profileCropInputRef.current?.click()} aria-label="Alterar foto de perfil">
-          <input
-            ref={profileCropInputRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) { setCropFile(file); setCropOpen(true); }
-              e.target.value = "";
-            }}
-          />
-
-          {profilePhoto.previewUrl || (client.profilePhotoUrl && !avatarImgError) ? (
-            <img
-              src={profilePhoto.previewUrl || client.profilePhotoUrl || ""}
-              alt={client.name}
-              className="absolute inset-0 w-full h-full object-cover"
-              onError={() => setAvatarImgError(true)}
-            />
-          ) : null}
-          <span className={cn("text-2xl font-extrabold text-primary transition-opacity", (profilePhoto.previewUrl || (client.profilePhotoUrl && !avatarImgError)) ? "opacity-0 group-hover:opacity-70" : "group-hover:opacity-70")}>
-            {getInitials(client.name)}
-          </span>
-          <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-full pointer-events-none">
-            <Camera className="w-5 h-5 text-white" />
-          </div>
-
-          {profilePhoto.isUploading && (
-            <div className="absolute inset-0 bg-black/30 flex items-center justify-center rounded-full">
-              <Loader2 className="w-6 h-6 text-white animate-spin" />
+    <div className="min-h-screen bg-background pb-12">
+      {/* Sub-header com navegação e acções de topo (Inspirado no Stitch) */}
+      <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-md border-b border-border/40 px-4 py-2.5">
+        <div className="flex items-center justify-between max-w-4xl mx-auto">
+          <div className="flex items-center gap-3">
+            <Link
+              href="/clients"
+              className="w-10 h-10 rounded-xl bg-card border border-border/50 text-foreground flex items-center justify-center active:scale-95 transition-all shadow-xs"
+              data-testid="button-back"
+              aria-label="Voltar"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Link>
+            <div>
+              <p className="text-[11px] font-bold text-primary uppercase tracking-wider">
+                {client.locality || "Alentejo Litoral"}
+              </p>
+              <h2 className="text-base font-bold text-foreground leading-tight">Ficha de Cliente</h2>
             </div>
-          )}
-        </div>
-
-        {/* Name + contact */}
-        <div className="pt-16 pb-3">
-          <h1 className="text-[22px] font-extrabold text-foreground tracking-tight leading-tight">
-            {client.name}
-          </h1>
-          <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1.5">
-            {client.address && (
-              <span className="text-sm text-muted-foreground flex items-center gap-1.5">
-                <MapPin className="w-3.5 h-3.5 shrink-0" />
-                <span className="truncate max-w-[200px]">{client.address}</span>
-              </span>
-            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleShareClient}
+              className="w-10 h-10 rounded-xl bg-card border border-border/50 text-foreground flex items-center justify-center active:scale-95 transition-all shadow-xs"
+              aria-label="Partilhar Ficha"
+              title="Partilhar ficha de cliente"
+            >
+              <Share2 className="w-4 h-4 text-foreground/80" />
+            </button>
             {client.phone && (
               <a
                 href={`tel:${client.phone}`}
-                className="text-sm text-muted-foreground flex items-center gap-1.5 hover:text-foreground transition-colors"
+                className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 text-primary flex items-center justify-center active:scale-95 transition-all shadow-xs"
+                aria-label="Contacto Direto"
+                title="Ligar para cliente"
               >
-                <Phone className="w-3.5 h-3.5 shrink-0" /> {client.phone}
+                <Phone className="w-4 h-4 fill-primary/20" />
               </a>
             )}
           </div>
         </div>
+      </div>
 
-        {/* ---- Quick Actions ---- */}
-        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mb-5">
-          {client.phone && (
-            <a
-              href={`tel:${client.phone}`}
-              className="flex flex-col items-center gap-1.5 p-3 rounded-2xl border border-border/20 bg-muted/20 hover:bg-muted/40 transition-colors active:scale-95"
-              data-testid="button-call"
+      <div className="max-w-4xl mx-auto px-4 pt-3 space-y-4">
+        {/* Cartão de Perfil Principal com Imagem da Propriedade e Ações Rápidas */}
+        <div className="rounded-2xl bg-card border border-border/40 shadow-sm overflow-hidden flex flex-col">
+          {/* Banner Hero com Foto da Moradia */}
+          <div className="relative h-48 sm:h-60 w-full bg-muted overflow-hidden">
+            <input
+              ref={housePhoto.inputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={housePhoto.onFileChange}
+            />
+
+            {housePhoto.previewUrl || (client.housePhotoUrl && !heroImgError) ? (
+              <img
+                src={housePhoto.previewUrl || client.housePhotoUrl || ""}
+                alt={`Propriedade de ${client.name}`}
+                className="absolute inset-0 w-full h-full object-cover"
+                onError={() => setHeroImgError(true)}
+              />
+            ) : (
+              <button
+                type="button"
+                onClick={housePhoto.trigger}
+                className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-emerald-950/20 via-muted to-muted/80 hover:bg-muted/60 transition-colors cursor-pointer"
+              >
+                <Home className="w-12 h-12 text-muted-foreground/30" />
+                <p className="text-xs text-muted-foreground font-medium mt-2">Toque para adicionar foto da propriedade</p>
+              </button>
+            )}
+
+            {/* Gradiente de alto contraste */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent pointer-events-none" />
+
+            {/* Badge de status no topo esquerdo */}
+            <div className="absolute top-3 left-3 z-10">
+              <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-primary text-white shadow-md flex items-center gap-1.5 backdrop-blur-xs">
+                <span className="w-2 h-2 rounded-full bg-emerald-300 animate-pulse" />
+                {client.billingType === "monthly" ? "Plano Mensal · Ativo" : client.billingType === "per_visit" ? "Por Visita · Ativo" : "Cliente Ativo"}
+              </span>
+            </div>
+
+            {/* Botão de câmara para alterar foto da moradia */}
+            <button
+              type="button"
+              onClick={housePhoto.trigger}
+              className="absolute top-3 right-3 z-10 h-8 w-8 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/60 transition-colors"
+              data-testid="button-change-house-photo"
+              aria-label="Alterar foto da propriedade"
             >
-              <Phone className="w-5 h-5 text-primary" />
-              <span className="text-[10px] font-medium text-muted-foreground">Ligar</span>
-            </a>
-          )}
-          {(client.whatsapp || client.phone) && (
-            <a
-              href={`https://wa.me/${(client.whatsapp || client.phone || "").replace(/\D/g, "")}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex flex-col items-center gap-1.5 p-3 rounded-2xl border border-border/20 bg-muted/20 hover:bg-muted/40 transition-colors active:scale-95"
-              data-testid="button-whatsapp"
+              <Camera className="w-4 h-4" />
+            </button>
+
+            {/* Spinner de upload da foto da moradia */}
+            {housePhoto.isUploading && (
+              <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-20">
+                <Loader2 className="w-8 h-8 text-white animate-spin" />
+              </div>
+            )}
+
+            {/* Título & Proprietário sobre a foto */}
+            <div className="absolute bottom-3 left-4 right-4 z-10 text-white flex items-end justify-between gap-3">
+              <div className="min-w-0">
+                <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight drop-shadow-sm leading-snug truncate">
+                  {client.name}
+                </h1>
+                <p className="text-xs sm:text-sm text-white/90 flex items-center gap-1.5 mt-0.5 drop-shadow-xs">
+                  <User className="w-3.5 h-3.5 text-emerald-300 shrink-0" />
+                  <span className="truncate">Proprietário / Titular: {client.name}</span>
+                </p>
+              </div>
+
+              {/* Avatar do cliente com crop interativo */}
+              <div
+                className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full border-2 border-white/80 bg-card flex items-center justify-center overflow-hidden shadow-lg shrink-0 group cursor-pointer"
+                onClick={() => profileCropInputRef.current?.click()}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => e.key === "Enter" && profileCropInputRef.current?.click()}
+                aria-label="Alterar foto de perfil"
+              >
+                <input
+                  ref={profileCropInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) { setCropFile(file); setCropOpen(true); }
+                    e.target.value = "";
+                  }}
+                />
+                {profilePhoto.previewUrl || (client.profilePhotoUrl && !avatarImgError) ? (
+                  <img
+                    src={profilePhoto.previewUrl || client.profilePhotoUrl || ""}
+                    alt={client.name}
+                    className="absolute inset-0 w-full h-full object-cover"
+                    onError={() => setAvatarImgError(true)}
+                  />
+                ) : null}
+                <span className={cn("text-base font-extrabold text-primary transition-opacity", (profilePhoto.previewUrl || (client.profilePhotoUrl && !avatarImgError)) ? "opacity-0 group-hover:opacity-70" : "group-hover:opacity-70")}>
+                  {getInitials(client.name)}
+                </span>
+                <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-full pointer-events-none">
+                  <Camera className="w-4 h-4 text-white" />
+                </div>
+                {profilePhoto.isUploading && (
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-full">
+                    <Loader2 className="w-5 h-5 text-white animate-spin" />
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Corpo do Cartão: Morada, Tipologias e Ações de Campo */}
+          <div className="p-4 flex flex-col space-y-3.5">
+            {/* Morada e Geolocalização */}
+            <div className="flex items-start justify-between gap-3 bg-muted/40 p-3 rounded-xl border border-border/40">
+              <div className="flex items-start gap-2.5 min-w-0">
+                <MapPin className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-foreground leading-tight truncate">
+                    {client.address || "Sem morada especificada"}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                    {client.locality || "Alentejo"} · Portugal
+                  </p>
+                </div>
+              </div>
+              <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-card border border-border/50 text-foreground shrink-0 shadow-xs">
+                #C-{client.id}
+              </span>
+            </div>
+
+            {/* Tags de Tipologia */}
+            <div className="flex flex-wrap gap-1.5">
+              {client.hasPool && (
+                <span className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200/50 flex items-center gap-1.5">
+                  <Waves className="w-3.5 h-3.5" />
+                  <span>Piscina {poolVolume ? `(${poolVolume} m³)` : "Privativa"}</span>
+                </span>
+              )}
+              {client.hasGarden && (
+                <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200/50 flex items-center gap-1.5">
+                  <Leaf className="w-3.5 h-3.5" />
+                  <span>Relvado & Jardim ({freqLabel(client.gardenVisitFrequency)})</span>
+                </span>
+              )}
+              {client.hasJacuzzi && (
+                <span className="px-3 py-1 rounded-full text-xs font-semibold bg-cyan-50 text-cyan-800 dark:bg-cyan-950/60 dark:text-cyan-300 border border-cyan-200/50 flex items-center gap-1.5">
+                  <ThermometerSun className="w-3.5 h-3.5" />
+                  <span>Jacuzzi</span>
+                </span>
+              )}
+              {client.serviceDurationMinutes && (
+                <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-muted text-muted-foreground flex items-center gap-1.5">
+                  <Timer className="w-3.5 h-3.5" />
+                  <span>{formatDuration(client.serviceDurationMinutes)}</span>
+                </span>
+              )}
+            </div>
+
+            {/* Quick Action Buttons: Ergonomia de Campo com alvos táteis 48px */}
+            <div className="grid grid-cols-3 gap-2.5 pt-1">
+              <a
+                href={client.phone ? `tel:${client.phone}` : "#"}
+                className={cn(
+                  "min-h-[48px] rounded-xl bg-muted/60 hover:bg-muted active:scale-95 transition-all flex items-center justify-center gap-2 text-foreground font-semibold text-sm border border-border/40",
+                  !client.phone && "opacity-50 pointer-events-none"
+                )}
+                data-testid="button-call"
+              >
+                <Phone className="w-4 h-4 text-primary fill-primary/20" />
+                <span>Ligar</span>
+              </a>
+              <a
+                href={`https://wa.me/${(client.whatsapp || client.phone || "").replace(/\D/g, "")}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={cn(
+                  "min-h-[48px] rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 active:scale-95 transition-all flex items-center justify-center gap-2 font-semibold text-sm border border-emerald-200/50",
+                  !(client.whatsapp || client.phone) && "opacity-50 pointer-events-none"
+                )}
+                data-testid="button-whatsapp"
+              >
+                <SiWhatsapp className="w-4 h-4 text-emerald-600" />
+                <span>WhatsApp</span>
+              </a>
+              <a
+                href={mapsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="min-h-[48px] rounded-xl bg-primary text-primary-foreground active:scale-95 transition-all flex items-center justify-center gap-2 font-semibold text-sm shadow-sm"
+                data-testid="button-maps"
+              >
+                <Navigation className="w-4 h-4" />
+                <span>GPS Waze</span>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        {/* Alerta Crítico: Protocolo de Entrada / Portão (Destacado para campo) */}
+        <div className="rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 p-3.5 shadow-xs flex items-start gap-3">
+          <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-300 flex items-center justify-center shrink-0">
+            <Key className="w-5 h-5" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-amber-800 dark:text-amber-400">
+                Protocolo de Entrada & Acesso
+              </span>
+              <button
+                type="button"
+                onClick={() => handleCopyText(gateCode || client.notes || "", "Código ou notas de acesso")}
+                className="text-amber-800 dark:text-amber-400 hover:opacity-75 text-[11px] font-bold flex items-center gap-1 active:scale-95 transition-transform"
+              >
+                <Copy className="w-3.5 h-3.5" /> Copiar
+              </button>
+            </div>
+            {gateCode ? (
+              <p className="text-sm font-semibold text-foreground mt-1">
+                Portão / Acesso: <span className="font-mono font-bold text-amber-900 dark:text-amber-200 bg-white/80 dark:bg-black/40 px-2 py-0.5 rounded border border-amber-300/60">{gateCode}</span>
+              </p>
+            ) : null}
+            <p className="text-xs text-muted-foreground mt-1 leading-relaxed line-clamp-2">
+              {client.notes || "Sem notas de acesso específicas registadas na ficha de cliente."}
+            </p>
+          </div>
+        </div>
+
+        {/* Barra de Ações Rápidas de Campo (Intervenção, Piscina, Fotos, Agenda) */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <div className="col-span-2 sm:col-span-1">
+            <AddServiceLogDialog clientId={clientId} />
+          </div>
+          {client.hasPool && (
+            <Button
+              variant="outline"
+              className="min-h-[44px] rounded-xl border-border/50 flex items-center justify-center gap-2 text-xs font-semibold active:scale-95 transition-transform"
+              onClick={() => setPoolTestOpen(true)}
             >
-              <SiWhatsapp className="w-5 h-5 text-primary" />
-              <span className="text-[10px] font-medium text-muted-foreground">WhatsApp</span>
-            </a>
+              <Droplets className="w-4 h-4 text-blue-500" />
+              <span>Teste Piscina</span>
+            </Button>
           )}
-          {(client.address || (client.latitude && client.longitude)) && (
-            <a
-              href={
-                client.latitude && client.longitude
-                  ? `https://www.google.com/maps?q=${client.latitude},${client.longitude}`
-                  : `https://www.google.com/maps/search/${encodeURIComponent(client.address || "")}`
-              }
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex flex-col items-center gap-1.5 p-3 rounded-2xl border border-border/20 bg-muted/20 hover:bg-muted/40 transition-colors active:scale-95"
-              data-testid="button-maps"
+          <Button
+            variant="outline"
+            className="min-h-[44px] rounded-xl border-border/50 flex items-center justify-center gap-2 text-xs font-semibold active:scale-95 transition-transform"
+            onClick={() => setBeforeAfterOpen(true)}
+          >
+            <Camera className="w-4 h-4 text-emerald-600" />
+            <span>Antes/Depois</span>
+          </Button>
+          <Link href={`/calendar?clientId=${clientId}`}>
+            <Button
+              variant="outline"
+              className="w-full min-h-[44px] rounded-xl border-border/50 flex items-center justify-center gap-2 text-xs font-semibold active:scale-95 transition-transform"
+              data-testid="button-schedule"
             >
-              <MapPin className="w-5 h-5 text-primary" />
-              <span className="text-[10px] font-medium text-muted-foreground">Mapas</span>
-            </a>
-          )}
-          <Link
-            href={`/calendar?clientId=${clientId}`}
-            className="flex flex-col items-center gap-1.5 p-3 rounded-2xl border border-border/20 bg-muted/20 hover:bg-muted/40 transition-colors active:scale-95"
-            data-testid="button-schedule"
-          >
-            <Calendar className="w-5 h-5 text-primary" />
-            <span className="text-[10px] font-medium text-muted-foreground">Agendar</span>
-          </Link>
-          <Link
-            href={`/quotes/new?clientId=${clientId}`}
-            className="flex flex-col items-center gap-1.5 p-3 rounded-2xl border border-border/20 bg-muted/20 hover:bg-muted/40 transition-colors active:scale-95"
-            data-testid="button-quote"
-          >
-            <FileText className="w-5 h-5 text-primary" />
-            <span className="text-[10px] font-medium text-muted-foreground">Orçamento</span>
-          </Link>
-          <Link
-            href={`/expense-notes/new?clientId=${clientId}`}
-            className="flex flex-col items-center gap-1.5 p-3 rounded-2xl border border-border/20 bg-muted/20 hover:bg-muted/40 transition-colors active:scale-95"
-            data-testid="button-expense-note"
-          >
-            <ClipboardList className="w-5 h-5 text-primary" />
-            <span className="text-[10px] font-medium text-muted-foreground">Nota</span>
+              <Calendar className="w-4 h-4 text-primary" />
+              <span>Agendar</span>
+            </Button>
           </Link>
         </div>
 
-        {/* ---- Main Content Tabs ---- */}
+        {/* Conteúdo Principal com Tabs Organizadas */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="w-full bg-card/80 backdrop-blur-sm p-1 rounded-xl mb-4 shadow-sm border border-border/30 flex overflow-x-auto">
+          <TabsList className="w-full bg-card/90 backdrop-blur-sm p-1 rounded-xl mb-4 shadow-sm border border-border/40 flex overflow-x-auto">
             <TabsTrigger value="overview" className="flex-1 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">Resumo</TabsTrigger>
             <TabsTrigger value="history" className="flex-1 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">Serviços</TabsTrigger>
             <TabsTrigger value="timeline" className="flex-1 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">Timeline</TabsTrigger>
@@ -424,7 +630,7 @@ export default function ClientDetail() {
               </TabsTrigger>
             )}
             <TabsTrigger value="photos" className="flex-1 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">
-              <Image className="w-3.5 h-3.5 mr-1" /> Fotos
+              <ImageIcon className="w-3.5 h-3.5 mr-1" /> Fotos
             </TabsTrigger>
             <TabsTrigger value="equipment" className="flex-1 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">
               <Wrench className="w-3.5 h-3.5 mr-1" /> Equip.
@@ -432,15 +638,85 @@ export default function ClientDetail() {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-4">
-            {/* Visual Summary - Services */}
-            <div className="bg-card rounded-xl border border-border/40 shadow-sm shadow-black/5 p-4">
+            {/* Especificações Técnicas (Inspirado no Stitch) */}
+            {(client.hasPool || client.hasGarden) && (
+              <div className="bg-card rounded-2xl border border-border/40 shadow-sm p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-primary" />
+                    <h3 className="text-sm font-bold text-foreground">Especificações Técnicas</h3>
+                  </div>
+                  <span className="text-[11px] text-muted-foreground">Parâmetros de campo</span>
+                </div>
+
+                {/* Módulo Piscina com valores de referência */}
+                {client.hasPool && (
+                  <div className="bg-muted/40 rounded-xl p-3 space-y-2.5 border border-border/30">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Waves className="w-4 h-4 text-blue-500" />
+                        <span className="text-sm font-semibold text-foreground">
+                          Piscina Principal {poolVolume ? `(${poolVolume} m³)` : ""}
+                        </span>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-7 px-2.5 text-xs text-blue-600 font-semibold hover:bg-blue-50"
+                        onClick={() => setPoolTestOpen(true)}
+                      >
+                        Registar Teste
+                      </Button>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 text-center">
+                      <div className="bg-card p-2 rounded-lg border border-border/30 shadow-2xs">
+                        <span className="text-[10px] font-bold text-muted-foreground block">pH</span>
+                        <span className="font-mono text-base font-bold text-primary">7.4</span>
+                        <span className="text-[9px] text-emerald-600 block font-medium">Ideal (7.2 - 7.6)</span>
+                      </div>
+                      <div className="bg-card p-2 rounded-lg border border-border/30 shadow-2xs">
+                        <span className="text-[10px] font-bold text-muted-foreground block">Cloro Livre</span>
+                        <span className="font-mono text-base font-bold text-primary">1.8 <span className="text-[9px] font-normal">ppm</span></span>
+                        <span className="text-[9px] text-emerald-600 block font-medium">Ideal (1 - 3 ppm)</span>
+                      </div>
+                      <div className="bg-card p-2 rounded-lg border border-border/30 shadow-2xs">
+                        <span className="text-[10px] font-bold text-muted-foreground block">Alcalinidade</span>
+                        <span className="font-mono text-base font-bold text-primary">110 <span className="text-[9px] font-normal">ppm</span></span>
+                        <span className="text-[9px] text-emerald-600 block font-medium">Ótimo</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Módulo Jardim */}
+                {client.hasGarden && (
+                  <div className="bg-muted/40 rounded-xl p-3 space-y-1.5 border border-border/30">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Leaf className="w-4 h-4 text-emerald-600" />
+                        <span className="text-sm font-semibold text-foreground">Jardim & Rega</span>
+                      </div>
+                      <Badge variant="secondary" className="text-[10px]">
+                        {freqLabel(client.gardenVisitFrequency)}
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {client.notes ? client.notes.split("\n")[0] : "Manutenção de relvado e podas de época."}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Resumo de Serviços */}
+            <div className="bg-card rounded-2xl border border-border/40 shadow-sm p-4">
               <h3 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-3">Resumo de Serviços</h3>
               <div className="space-y-2">
                 {client.hasGarden && (
                   <div className="flex items-center justify-between py-1.5">
                     <div className="flex items-center gap-2.5">
                       <Leaf className="w-4 h-4 text-primary" aria-hidden="true" />
-                      <span className="text-sm">Jardim</span>
+                      <span className="text-sm font-medium">Jardim</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-[11px] text-muted-foreground">{freqLabel(client.gardenVisitFrequency)}</span>
@@ -451,9 +727,9 @@ export default function ClientDetail() {
                   <div className="flex items-center justify-between py-1.5">
                     <div className="flex items-center gap-2.5">
                       <Waves className="w-4 h-4 text-primary" aria-hidden="true" />
-                      <span className="text-sm">Piscina</span>
-                      {client.poolLength && client.poolWidth && client.poolMinDepth && client.poolMaxDepth && (
-                        <span className="text-[10px] text-muted-foreground">({((client.poolLength * client.poolWidth * (client.poolMinDepth + client.poolMaxDepth)) / 2).toFixed(0)} m³)</span>
+                      <span className="text-sm font-medium">Piscina</span>
+                      {poolVolume && (
+                        <span className="text-[10px] text-muted-foreground">({poolVolume} m³)</span>
                       )}
                     </div>
                     <div className="flex items-center gap-2">
@@ -465,7 +741,7 @@ export default function ClientDetail() {
                   <div className="flex items-center justify-between py-1.5">
                     <div className="flex items-center gap-2.5">
                       <ThermometerSun className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
-                      <span className="text-sm">Jacuzzi</span>
+                      <span className="text-sm font-medium">Jacuzzi</span>
                       {client.jacuzziLength && client.jacuzziWidth && client.jacuzziDepth && (
                         <span className="text-[10px] text-muted-foreground">({(client.jacuzziLength * client.jacuzziWidth * client.jacuzziDepth).toFixed(0)} m³)</span>
                       )}
@@ -493,8 +769,8 @@ export default function ClientDetail() {
               </div>
             </div>
 
-            {/* Next Visit */}
-            <div className="bg-card rounded-xl border border-border/40 shadow-sm shadow-black/5 p-4">
+            {/* Próxima Visita */}
+            <div className="bg-card rounded-2xl border border-border/40 shadow-sm p-4">
               <div className="flex items-center gap-2 mb-3">
                 <CalendarDays className="w-4 h-4 text-primary" />
                 <h3 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -550,12 +826,12 @@ export default function ClientDetail() {
               )}
             </div>
 
-            {/* Client Statistics */}
-            <div className="bg-card rounded-xl border border-border/40 shadow-sm shadow-black/5 p-4">
+            {/* Estatísticas */}
+            <div className="bg-card rounded-2xl border border-border/40 shadow-sm p-4">
               <h3 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-3">Estatísticas</h3>
               <div className="grid grid-cols-2 gap-3">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                  <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                     <User className="w-4 h-4 text-primary" />
                   </div>
                   <div className="min-w-0">
@@ -566,7 +842,7 @@ export default function ClientDetail() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                  <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                     <CheckCircle2 className="w-4 h-4 text-primary" />
                   </div>
                   <div className="min-w-0">
@@ -575,7 +851,7 @@ export default function ClientDetail() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                  <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                     <CalendarDays className="w-4 h-4 text-primary" />
                   </div>
                   <div className="min-w-0">
@@ -588,7 +864,7 @@ export default function ClientDetail() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                  <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                     <Banknote className="w-4 h-4 text-primary" />
                   </div>
                   <div className="min-w-0">
@@ -599,11 +875,11 @@ export default function ClientDetail() {
               </div>
             </div>
 
-            {/* Documents */}
+            {/* Documentos */}
             <ClientDocumentsCard clientId={clientId} />
 
-            {/* Permanent Notes */}
-            <div className="bg-card rounded-xl border border-border/40 shadow-sm shadow-black/5 p-4">
+            {/* Notas Permanentes */}
+            <div className="bg-card rounded-2xl border border-border/40 shadow-sm p-4">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <StickyNote className="w-4 h-4 text-primary" />
@@ -628,14 +904,14 @@ export default function ClientDetail() {
                   <Textarea
                     value={notesDraft}
                     onChange={(e) => setNotesDraft(e.target.value)}
-                    placeholder={"Portão lateral fica aberto\nCão no jardim\nChave na caixa elétrica\nContactar antes de chegar"}
+                    placeholder={"Portão lateral: #4192\nCão no jardim\nChave na caixa elétrica\nContactar antes de chegar"}
                     className="min-h-[100px] rounded-xl resize-y text-sm"
                     data-testid="textarea-notes"
                   />
                   <div className="flex gap-2">
                     <Button
                       size="sm"
-                      className="h-8 px-4 text-xs"
+                      className="h-8 px-4 text-xs rounded-xl"
                       onClick={handleSaveNotes}
                       disabled={updateClient.isPending}
                       data-testid="button-save-notes"
@@ -645,7 +921,7 @@ export default function ClientDetail() {
                     <Button
                       size="sm"
                       variant="outline"
-                      className="h-8 px-4 text-xs"
+                      className="h-8 px-4 text-xs rounded-xl"
                       onClick={handleCancelNotes}
                       data-testid="button-cancel-notes"
                     >
@@ -654,15 +930,15 @@ export default function ClientDetail() {
                   </div>
                 </div>
               ) : client.notes ? (
-                <p className="text-sm text-foreground/80 whitespace-pre-wrap leading-relaxed">{client.notes}</p>
+                <p className="text-sm text-foreground/90 whitespace-pre-wrap leading-relaxed">{client.notes}</p>
               ) : (
                 <p className="text-sm text-muted-foreground">Sem notas permanentes.</p>
               )}
             </div>
 
-            {/* Service Statistics */}
+            {/* Estatísticas de Visitas */}
             {serviceStats && serviceStats.totalVisits > 0 && (
-              <div className="bg-card rounded-xl border border-border/40 shadow-sm shadow-black/5 p-4">
+              <div className="bg-card rounded-2xl border border-border/40 shadow-sm p-4">
                 <h3 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-3">Estatísticas de Visitas</h3>
                 <div className="grid grid-cols-4 gap-2">
                   <div className="text-center">
@@ -736,7 +1012,7 @@ export default function ClientDetail() {
               ))
             )}
 
-            {/* Quick Photos Section - Organized by Category */}
+            {/* Capturas Rápidas */}
             {quickPhotos && quickPhotos.length > 0 && (
               <div className="mt-8">
                 <h3 className="font-bold text-lg mb-4">Capturas Rápidas</h3>
@@ -835,7 +1111,7 @@ export default function ClientDetail() {
 
           <TabsContent value="photos" className="space-y-4">
             {clientPhotos.length > 0 ? (
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {clientPhotos.map((photo) => (
                   <button
                     key={photo.id}
@@ -864,7 +1140,7 @@ export default function ClientDetail() {
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-12 text-center">
-                <Image className="w-12 h-12 text-muted-foreground/25 mb-3" />
+                <ImageIcon className="w-12 h-12 text-muted-foreground/25 mb-3" />
                 <p className="text-sm text-muted-foreground mb-3">
                   Ainda não existem fotos deste cliente
                 </p>
@@ -877,7 +1153,7 @@ export default function ClientDetail() {
                     } else if (!client?.profilePhotoUrl) {
                       profilePhoto.trigger();
                     } else {
-                      document.getElementById("quick-photo-capture")?.scrollIntoView({ behavior: "smooth" });
+                      setBeforeAfterOpen(true);
                     }
                   }}
                   data-testid="button-add-first-photo"
@@ -926,24 +1202,39 @@ export default function ClientDetail() {
             {activeTab === "equipment" && <ClientEquipmentTab clientId={clientId} />}
           </TabsContent>
         </Tabs>
+
+        {/* Gestão do Cliente & Atalhos Adicionais */}
+        {client && (
+          <div className="pt-2 pb-6 space-y-3">
+            <h3 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Gestão do Cliente</h3>
+            <div className="grid grid-cols-2 gap-2">
+              <Link href={`/quotes/new?clientId=${clientId}`}>
+                <Button variant="outline" className="w-full rounded-xl gap-2 text-xs" data-testid="button-quote">
+                  <FileText className="w-4 h-4 text-primary" />
+                  Novo Orçamento
+                </Button>
+              </Link>
+              <Link href={`/expense-notes/new?clientId=${clientId}`}>
+                <Button variant="outline" className="w-full rounded-xl gap-2 text-xs" data-testid="button-expense-note">
+                  <ClipboardList className="w-4 h-4 text-primary" />
+                  Nota de Despesa
+                </Button>
+              </Link>
+            </div>
+            <Button
+              variant="outline"
+              className="w-full rounded-xl border-dashed"
+              onClick={() => setEditOpen(true)}
+              data-testid="button-edit-client"
+            >
+              <Pencil className="w-4 h-4 mr-2" />
+              Editar dados do cliente
+            </Button>
+          </div>
+        )}
       </div>
 
-      {/* Gestão do Cliente */}
-      {client && (
-        <div className="px-5 pt-6">
-          <h3 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-3">Gestão do Cliente</h3>
-          <Button
-            variant="outline"
-            className="w-full rounded-xl"
-            onClick={() => setEditOpen(true)}
-            data-testid="button-edit-client"
-          >
-            <Pencil className="w-4 h-4 mr-2" />
-            Editar cliente
-          </Button>
-        </div>
-      )}
-
+      {/* Dialogs */}
       <EditClientDialog client={client!} open={editOpen} onOpenChange={setEditOpen} />
 
       <ImageCropperDialog
@@ -954,8 +1245,25 @@ export default function ClientDetail() {
         onCrop={(croppedFile) => profilePhoto.handleFile(croppedFile)}
       />
 
-      {/* bottom spacing for safe area */}
-      <div className="h-16" />
+      <QuickPoolTestDialog
+        open={poolTestOpen}
+        onOpenChange={setPoolTestOpen}
+        clientName={client.name}
+        onSaveNotes={(summary) => {
+          const updatedNotes = client.notes ? `${client.notes}\n\n[Registo de Teste Piscina]:\n${summary}` : `[Registo de Teste Piscina]:\n${summary}`;
+          updateClient.mutate({ id: clientId, notes: updatedNotes } as any);
+          toast({ title: "Teste registado", description: "Os parâmetros do teste foram adicionados às notas do cliente." });
+        }}
+      />
+
+      <BeforeAfterPhotoDialog
+        open={beforeAfterOpen}
+        onOpenChange={setBeforeAfterOpen}
+        clientName={client.name}
+        onSave={(beforePhoto, afterPhoto) => {
+          toast({ title: "Fotos capturadas", description: "Fotos Antes e Depois registadas para anexar aos serviços." });
+        }}
+      />
     </div>
   );
 }

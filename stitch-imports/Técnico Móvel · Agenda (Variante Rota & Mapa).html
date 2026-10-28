@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+
+<html lang="pt"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/>
+<meta content="mobile_tab" name="shell-type"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Geist:wght@500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+    @layer base {
+      html, body { width: 100vw; margin: 0; padding: 0; }
+      body { overscroll-behavior: none; }
+      .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
+      .pt-safe { padding-top: env(safe-area-inset-top, 0px); }
+      main > :first-child { margin-top: 0 !important; }
+      main > :last-child { margin-bottom: 0 !important; }
+    }
+    ::-webkit-scrollbar { display: none; }
+    body { min-height: max(884px, 100dvh); }
+    @keyframes pulse-ring {
+      0% { transform: scale(0.9); opacity: 0.9; }
+      50% { transform: scale(1.35); opacity: 0.3; }
+      100% { transform: scale(0.9); opacity: 0.9; }
+    }
+    .pulse-effect {
+      animation: pulse-ring 2.2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+  </style>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "inverse-surface": "#263238",
+            "tertiary-fixed": "#ffdbcf",
+            "surface-variant": "#d7e4ec",
+            "accent-soft": "#E0F2F1",
+            "secondary-fixed": "#85f6e5",
+            "secondary-fixed-dim": "#67d9c9",
+            "tertiary": "#a83900",
+            "primary-deep": "#357A38",
+            "surface-container-lowest": "#ffffff",
+            "primary-soft": "#E8F5E9",
+            "card": "#FFFFFF",
+            "outline-variant": "#becab9",
+            "error-container": "#ffdad6",
+            "inverse-on-surface": "#e6f3fb",
+            "muted-foreground": "#757575",
+            "on-secondary": "#ffffff",
+            "secondary": "#006a60",
+            "tertiary-fixed-dim": "#ffb59a",
+            "on-secondary-fixed": "#00201c",
+            "primary-fixed": "#94f990",
+            "on-background": "#111d23",
+            "on-error": "#ffffff",
+            "surface-bright": "#f4faff",
+            "outline": "#6f7a6b",
+            "muted": "#EEF1F0",
+            "primary-container": "#4caf50",
+            "primary-fixed-dim": "#78dc77",
+            "on-error-container": "#93000a",
+            "tertiary-container": "#ff6f33",
+            "on-primary-fixed": "#002204",
+            "error": "#ba1a1a",
+            "warm-soft": "#FFF3E0",
+            "surface-container-high": "#ddeaf2",
+            "on-surface-variant": "#3f4a3c",
+            "on-surface": "#111d23",
+            "surface-tint": "#006e1c",
+            "border": "#E4E6E8",
+            "on-primary-fixed-variant": "#005313",
+            "on-secondary-container": "#007166",
+            "on-tertiary-fixed-variant": "#802a00",
+            "surface-dim": "#cfdce4",
+            "on-secondary-fixed-variant": "#005048",
+            "surface-container-highest": "#d7e4ec",
+            "on-primary-container": "#003c0b",
+            "inverse-primary": "#78dc77",
+            "secondary-container": "#85f6e5",
+            "surface-container": "#e3f0f8",
+            "background": "#FAFAF7",
+            "on-tertiary": "#ffffff",
+            "on-tertiary-container": "#5f1d00",
+            "on-primary": "#ffffff",
+            "surface": "#f4faff",
+            "surface-container-low": "#e9f6fd",
+            "on-tertiary-fixed": "#380d00",
+            "primary": "#006e1c"
+          },
+          borderRadius: {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          spacing: {
+            "gutter": "1rem",
+            "margin-desktop": "2rem",
+            "space-xs": "0.25rem",
+            "margin": "1rem",
+            "space-sm": "0.5rem",
+            "space-md": "0.75rem",
+            "space-xl": "1.5rem",
+            "space-lg": "1rem",
+            "gutter-desktop": "1.5rem"
+          },
+          fontFamily: {
+            "body-default": ["Inter"],
+            "headline-hero": ["Inter"],
+            "card-title": ["Inter"],
+            "headline-section": ["Inter"],
+            "headline-hero-mobile": ["Inter"],
+            "headline-section-mobile": ["Inter"],
+            "body-dense": ["Inter"],
+            "data-mono-lg": ["Geist"],
+            "caption-bold": ["Inter"],
+            "caption": ["Inter"],
+            "data-mono": ["Geist"],
+            "body-medium": ["Inter"]
+          },
+          fontSize: {
+            "body-default": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "headline-hero": ["32px", { "lineHeight": "38px", "letterSpacing": "-0.03em", "fontWeight": "800" }],
+            "card-title": ["16px", { "lineHeight": "22px", "fontWeight": "600" }],
+            "headline-section": ["20px", { "lineHeight": "26px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "headline-hero-mobile": ["28px", { "lineHeight": "34px", "letterSpacing": "-0.03em", "fontWeight": "800" }],
+            "headline-section-mobile": ["18px", { "lineHeight": "24px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "body-dense": ["13px", { "lineHeight": "18px", "fontWeight": "400" }],
+            "data-mono-lg": ["18px", { "lineHeight": "22px", "fontWeight": "600" }],
+            "caption-bold": ["11px", { "lineHeight": "14px", "letterSpacing": "0.04em", "fontWeight": "600" }],
+            "caption": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+            "data-mono": ["13px", { "lineHeight": "16px", "fontWeight": "500" }],
+            "body-medium": ["14px", { "lineHeight": "20px", "fontWeight": "500" }]
+          }
+        }
+      }
+    };
+  </script>
+</head>
+<body class="bg-background font-body-default text-on-surface flex flex-col min-h-screen">
+<!-- Top App Bar -->
+<header class="fixed top-0 w-full z-50 bg-surface-container-lowest/85 backdrop-blur-xl border-b border-border shadow-[0_1px_6px_rgba(0,0,0,0.03)] pt-safe">
+<div class="h-16 px-gutter flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<div class="w-9 h-9 rounded-lg bg-primary-soft flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-[22px]">navigation</span>
+</div>
+<div>
+<div class="flex items-center gap-1.5">
+<h1 class="font-headline-section-mobile text-headline-section-mobile text-on-surface tracking-tight">Agenda &amp; Rota</h1>
+<span class="inline-flex items-center gap-1 text-[10px] font-caption-bold bg-primary-soft text-primary-deep px-1.5 py-0.5 rounded-full uppercase tracking-wider">
+<span class="w-1.5 h-1.5 rounded-full bg-primary animate-ping"></span> Live GPS
+            </span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-space-xs">
+<!-- Live Field Weather Chip -->
+<div class="flex items-center gap-1 bg-warm-soft px-2.5 py-1 rounded-full text-tertiary">
+<span class="material-symbols-outlined text-[16px] text-amber-500">wb_sunny</span>
+<span class="font-data-mono text-[12px] font-semibold">24°C</span>
+</div>
+<button aria-label="Notificações" class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-muted transition-colors">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+</button>
+<div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary text-[18px]">person</span>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Scrollable Content -->
+<main class="flex flex-col relative w-full pt-16 pb-28 bg-background min-h-screen px-gutter">
+<div class="flex flex-col w-full pb-12 pt-3">
+<!-- Week Calendar Strip -->
+<section class="bg-surface-container-lowest shadow-sm rounded-xl p-space-md mb-space-sm border border-border/80">
+<div class="flex items-center justify-between mb-space-sm">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[20px]">calendar_month</span>
+<span class="font-card-title text-card-title text-on-surface">Maio 2025</span>
+</div>
+<div class="flex items-center gap-space-xs bg-muted rounded-full px-space-xs py-0.5">
+<button class="w-7 h-7 flex items-center justify-center text-on-surface-variant hover:text-on-surface">
+<span class="material-symbols-outlined text-[16px]">chevron_left</span>
+</button>
+<span class="font-caption-bold text-caption-bold text-on-surface px-space-xs">Semana 18</span>
+<button class="w-7 h-7 flex items-center justify-center text-on-surface-variant hover:text-on-surface">
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+</button>
+</div>
+</div>
+<!-- Day Selector Row -->
+<div class="grid grid-cols-7 gap-1 text-center">
+<button class="flex flex-col items-center py-2 px-1 rounded-xl hover:bg-muted transition-colors">
+<span class="font-caption text-caption text-on-surface-variant">Seg</span>
+<span class="font-data-mono text-data-mono font-bold text-on-surface mt-0.5">27</span>
+<span class="mt-1 font-caption-bold text-[10px] text-muted-foreground bg-muted rounded-full px-1.5 py-0.5">4</span>
+</button>
+<button class="flex flex-col items-center py-2 px-1 rounded-xl hover:bg-muted transition-colors">
+<span class="font-caption text-caption text-on-surface-variant">Ter</span>
+<span class="font-data-mono text-data-mono font-bold text-on-surface mt-0.5">28</span>
+<span class="mt-1 font-caption-bold text-[10px] text-muted-foreground bg-muted rounded-full px-1.5 py-0.5">5</span>
+</button>
+<button class="flex flex-col items-center py-2 px-1 rounded-xl hover:bg-muted transition-colors">
+<span class="font-caption text-caption text-on-surface-variant">Qua</span>
+<span class="font-data-mono text-data-mono font-bold text-on-surface mt-0.5">29</span>
+<span class="mt-1 font-caption-bold text-[10px] text-muted-foreground bg-muted rounded-full px-1.5 py-0.5">6</span>
+</button>
+<button class="flex flex-col items-center py-2 px-1 rounded-xl hover:bg-muted transition-colors">
+<span class="font-caption text-caption text-on-surface-variant">Qui</span>
+<span class="font-data-mono text-data-mono font-bold text-on-surface mt-0.5">30</span>
+<span class="mt-1 font-caption-bold text-[10px] text-muted-foreground bg-muted rounded-full px-1.5 py-0.5">5</span>
+</button>
+<!-- Sex (Active / Hoje) -->
+<button class="flex flex-col items-center py-2 px-1 rounded-xl bg-primary text-on-primary shadow-sm ring-2 ring-primary/20">
+<span class="font-caption-bold text-caption text-on-primary">Sex</span>
+<span class="font-data-mono text-data-mono-lg font-bold text-on-primary mt-0.5">1</span>
+<span class="mt-1 font-caption-bold text-[10px] bg-surface-container-lowest text-primary-deep rounded-full px-1.5 py-0.5 font-bold shadow-sm">5</span>
+</button>
+<button class="flex flex-col items-center py-2 px-1 rounded-xl hover:bg-muted transition-colors">
+<span class="font-caption text-caption text-on-surface-variant">Sáb</span>
+<span class="font-data-mono text-data-mono font-bold text-on-surface mt-0.5">2</span>
+<span class="mt-1 font-caption-bold text-[10px] text-muted-foreground bg-muted rounded-full px-1.5 py-0.5">2</span>
+</button>
+<button class="flex flex-col items-center py-2 px-1 rounded-xl hover:bg-muted transition-colors opacity-60">
+<span class="font-caption text-caption text-on-surface-variant">Dom</span>
+<span class="font-data-mono text-data-mono font-bold text-on-surface mt-0.5">3</span>
+<span class="mt-1 font-caption-bold text-[10px] text-muted-foreground bg-muted rounded-full px-1.5 py-0.5">0</span>
+</button>
+</div>
+</section>
+<!-- Mode Selector Segmented Control -->
+<section class="bg-surface-container-lowest p-1 rounded-xl border border-border flex items-center mb-space-md shadow-xs">
+<button class="flex-1 py-1.5 px-3 rounded-lg bg-surface-container-highest text-on-surface font-body-medium text-[13px] font-semibold flex items-center justify-center gap-1.5 shadow-xs transition-all">
+<span class="material-symbols-outlined text-[17px] text-secondary">map</span>
+<span>Rota GPS &amp; Mapa</span>
+</button>
+<button class="flex-1 py-1.5 px-3 rounded-lg text-on-surface-variant hover:text-on-surface font-body-medium text-[13px] flex items-center justify-center gap-1.5 transition-colors">
+<span class="material-symbols-outlined text-[17px]">format_list_bulleted</span>
+<span>Itinerário Puro</span>
+</button>
+</section>
+<!-- Destaque Hero: Mini-Mapa Esquemático Rota Alentejo (Troia -> Comporta -> Melides) -->
+<section class="bg-surface-container-lowest rounded-2xl border border-border shadow-sm overflow-hidden mb-space-md">
+<!-- Map Header / Live Trip summary -->
+<div class="px-space-md pt-3.5 pb-2.5 flex items-center justify-between border-b border-border/60 bg-surface-container-lowest">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-primary-container animate-pulse"></span>
+<div>
+<span class="font-caption-bold text-caption-bold uppercase tracking-wider text-secondary">Rota Alentejo Litoral</span>
+<p class="font-caption text-caption text-on-surface-variant">Troia · Comporta · Melides</p>
+</div>
+</div>
+<div class="text-right">
+<span class="font-data-mono text-data-mono font-bold text-tertiary">42 km restantes</span>
+<span class="block font-caption text-[11px] text-muted-foreground">~3h20 volante e obra</span>
+</div>
+</div>
+<!-- Schematic Map Canvas Area -->
+<div class="relative w-full h-48 bg-[#eef5ee] overflow-hidden select-none">
+<!-- Stylized Coastline & Geography Shapes -->
+<svg class="absolute inset-0 w-full h-full" preserveaspectratio="none" viewbox="0 0 400 200" xmlns="http://www.w3.org/2000/svg">
+<!-- Ocean background on left (Atlantic Coast) -->
+<path d="M0,0 L95,0 Q120,70 85,120 T110,200 L0,200 Z" fill="#D7EBF4" opacity="0.85"></path>
+<!-- Sand Dunes / Shore Strip -->
+<path d="M95,0 Q120,70 85,120 T110,200 L122,200 Q97,120 132,70 T107,0 Z" fill="#F3EAD6" opacity="0.9"></path>
+<!-- Subtle Pine Forest / Estuário Patches -->
+<circle cx="160" cy="45" fill="#DCEBDB" opacity="0.6" r="28"></circle>
+<circle cx="280" cy="110" fill="#DCEBDB" opacity="0.6" r="42"></circle>
+<circle cx="220" cy="165" fill="#DCEBDB" opacity="0.5" r="30"></circle>
+<!-- Route Road Lines: Done portion (08:30 -> 09:15 -> 09:45) -->
+<path d="M125,28 L170,55 L215,85" fill="none" stroke="#006e1c" stroke-linecap="round" stroke-linejoin="round" stroke-width="4.5"></path>
+<!-- Planned remaining route: 09:45 -> 11:30 -> 14:30 -->
+<path d="M215,85 L260,125 L320,165" fill="none" opacity="0.8" stroke="#006a60" stroke-dasharray="6,6" stroke-linecap="round" stroke-linejoin="round" stroke-width="3.5"></path>
+<!-- Labels on Map -->
+<text fill="#5F8D9E" font-family="Inter" font-size="10" font-weight="600" letter-spacing="0.5" x="18" y="32">OCEANO</text>
+<text fill="#2E5A44" font-family="Inter" font-size="9" font-weight="700" x="120" y="20">1. Aldegalega</text>
+<text fill="#2E5A44" font-family="Inter" font-size="9" font-weight="700" x="175" y="52">2. Coronado</text>
+<text fill="#006e1c" font-family="Inter" font-size="10" font-weight="800" x="228" y="80">3. Hillcrest #14</text>
+<text fill="#5A6D63" font-family="Inter" font-size="9" font-weight="600" x="270" y="123">4. Zambujeiro</text>
+<text fill="#5A6D63" font-family="Inter" font-size="9" font-weight="600" x="245" y="172">5. Vivenda Flores</text>
+</svg>
+<!-- Interactive / Map Pin Overlays -->
+<!-- Stop 1 (Completed) -->
+<div class="absolute left-[122px] top-[25px] -translate-x-1/2 -translate-y-1/2 flex items-center justify-center">
+<span class="w-5 h-5 rounded-full bg-primary-soft border-2 border-primary text-primary flex items-center justify-center font-caption-bold text-[10px] shadow-sm">✓</span>
+</div>
+<!-- Stop 2 (Completed) -->
+<div class="absolute left-[167px] top-[52px] -translate-x-1/2 -translate-y-1/2 flex items-center justify-center">
+<span class="w-5 h-5 rounded-full bg-primary-soft border-2 border-primary text-primary flex items-center justify-center font-caption-bold text-[10px] shadow-sm">✓</span>
+</div>
+<!-- Stop 3: CURRENT VAN POSITION (Blinking PIN) -->
+<div class="absolute left-[212px] top-[82px] -translate-x-1/2 -translate-y-1/2 flex items-center justify-center">
+<span class="absolute w-10 h-10 rounded-full bg-tertiary-container/30 pulse-effect pointer-events-none"></span>
+<div class="relative w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center shadow-lg border-2 border-surface-container-lowest z-10">
+<span class="material-symbols-outlined text-[18px]">local_shipping</span>
+</div>
+<!-- Tooltip ETA badge -->
+<div class="absolute -top-7 whitespace-nowrap bg-on-surface text-surface-container-lowest text-[10px] font-caption-bold px-2 py-0.5 rounded-full shadow-md z-20 flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary-container"></span>
+<span>ETA 8 min</span>
+</div>
+</div>
+<!-- Stop 4 (Pending) -->
+<div class="absolute left-[257px] top-[122px] -translate-x-1/2 -translate-y-1/2 flex items-center justify-center">
+<span class="w-5 h-5 rounded-full bg-surface-container-lowest border-2 border-outline-variant text-on-surface-variant flex items-center justify-center font-caption-bold text-[10px] shadow-sm">4</span>
+</div>
+<!-- Stop 5 (Pending) -->
+<div class="absolute left-[317px] top-[162px] -translate-x-1/2 -translate-y-1/2 flex items-center justify-center">
+<span class="w-5 h-5 rounded-full bg-surface-container-lowest border-2 border-outline-variant text-on-surface-variant flex items-center justify-center font-caption-bold text-[10px] shadow-sm">5</span>
+</div>
+<!-- Floating Map Control Buttons -->
+<div class="absolute bottom-2 right-2 flex items-center gap-1 bg-surface-container-lowest/90 backdrop-blur-md rounded-lg p-1 border border-border shadow-xs">
+<button aria-label="Centrar Carrinha" class="w-7 h-7 flex items-center justify-center rounded text-on-surface-variant hover:text-on-surface hover:bg-muted">
+<span class="material-symbols-outlined text-[17px]">my_location</span>
+</button>
+<button aria-label="Expandir Mapa" class="w-7 h-7 flex items-center justify-center rounded text-on-surface-variant hover:text-on-surface hover:bg-muted">
+<span class="material-symbols-outlined text-[17px]">fullscreen</span>
+</button>
+</div>
+</div>
+<!-- Quick Route Progress Indicator -->
+<div class="p-space-sm bg-surface-container-lowest flex items-center justify-between text-[12px] border-t border-border/60">
+<div class="flex items-center gap-2">
+<span class="font-body-medium font-semibold text-primary-deep">2 de 5 concluídas</span>
+<span class="text-muted-foreground">·</span>
+<span class="text-on-surface-variant">Próxima em 4.2 km</span>
+</div>
+<span class="font-data-mono font-semibold text-primary">Progresso 40%</span>
+</div>
+</section>
+<!-- Timeline Vertical Header & Filter Pills -->
+<div class="flex items-center justify-between mb-space-sm">
+<h2 class="font-headline-section-mobile text-[16px] text-on-surface flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary text-[20px]">timeline</span>
+<span>Timeline Contínua de Campo</span>
+</h2>
+<span class="font-caption text-caption text-muted-foreground">5 Paragens hoje</span>
+</div>
+<!-- TIMELINE VERTICAL CONTÍNUA -->
+<div class="relative pl-6 space-y-4">
+<!-- Connecting Vertical Line -->
+<div class="absolute left-[11px] top-3 bottom-4 w-[2.5px] bg-gradient-to-b from-primary via-primary-container to-outline-variant"></div>
+<!-- Stop 1: Quinta da Aldegalega (Concluído) -->
+<div class="relative group">
+<!-- Timeline Node Icon -->
+<div class="absolute -left-6 top-3 w-6 h-6 rounded-full bg-primary text-on-primary flex items-center justify-center ring-4 ring-background shadow-xs z-10">
+<span class="material-symbols-outlined text-[15px]">check</span>
+</div>
+<article class="bg-surface-container-lowest rounded-xl p-space-md border border-border shadow-xs hover:border-outline-variant transition-all">
+<div class="flex items-start justify-between gap-space-sm mb-1">
+<div class="flex items-center gap-2">
+<span class="font-data-mono text-data-mono font-semibold text-muted-foreground">08:30 - 09:15</span>
+<span class="inline-flex items-center gap-1 text-[11px] font-caption-bold bg-primary-soft text-primary-deep px-2 py-0.5 rounded-full">
+<span class="material-symbols-outlined text-[13px]">timer</span> 45 min real
+                </span>
+</div>
+<span class="inline-flex items-center gap-1 bg-primary-soft text-primary-deep font-caption-bold text-caption-bold px-2 py-0.5 rounded-full">
+                Concluído
+              </span>
+</div>
+<div class="mt-1">
+<h3 class="font-card-title text-card-title text-on-surface">1. Quinta da Aldegalega</h3>
+<p class="font-body-dense text-body-dense text-secondary font-medium flex items-center gap-1 mt-0.5">
+<span class="material-symbols-outlined text-[16px]">pool</span>
+                Piscina: Manutenção semanal e teste de cloro
+              </p>
+</div>
+<div class="flex items-center justify-between pt-2 mt-2 border-t border-border/60 text-on-surface-variant">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[15px] text-muted-foreground">pin_drop</span>
+<span class="font-caption text-caption truncate max-w-[200px]">Caminho dos Moinhos 4</span>
+</div>
+<button class="font-caption-bold text-caption-bold text-primary flex items-center gap-0.5 py-0.5 px-1 hover:underline">
+<span>Relatório</span>
+<span class="material-symbols-outlined text-[15px]">chevron_right</span>
+</button>
+</div>
+</article>
+</div>
+<!-- Stop 2: Família Coronado (Concluído) -->
+<div class="relative group">
+<!-- Timeline Node Icon -->
+<div class="absolute -left-6 top-3 w-6 h-6 rounded-full bg-primary text-on-primary flex items-center justify-center ring-4 ring-background shadow-xs z-10">
+<span class="material-symbols-outlined text-[15px]">check</span>
+</div>
+<article class="bg-surface-container-lowest rounded-xl p-space-md border border-border shadow-xs hover:border-outline-variant transition-all">
+<div class="flex items-start justify-between gap-space-sm mb-1">
+<div class="flex items-center gap-2">
+<span class="font-data-mono text-data-mono font-semibold text-muted-foreground">09:15 - 09:40</span>
+<span class="inline-flex items-center gap-1 text-[11px] font-caption-bold bg-primary-soft text-primary-deep px-2 py-0.5 rounded-full">
+<span class="material-symbols-outlined text-[13px]">timer</span> 25 min real
+                </span>
+</div>
+<span class="inline-flex items-center gap-1 bg-primary-soft text-primary-deep font-caption-bold text-caption-bold px-2 py-0.5 rounded-full">
+                Concluído
+              </span>
+</div>
+<div class="mt-1">
+<h3 class="font-card-title text-card-title text-on-surface">2. Família Coronado</h3>
+<p class="font-body-dense text-body-dense text-primary-deep font-medium flex items-center gap-1 mt-0.5">
+<span class="material-symbols-outlined text-[16px]">yard</span>
+                Jardim: Poda e adubação orgânica
+              </p>
+</div>
+<div class="flex items-center justify-between pt-2 mt-2 border-t border-border/60 text-on-surface-variant">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[15px] text-muted-foreground">pin_drop</span>
+<span class="font-caption text-caption truncate max-w-[200px]">Rua do Alecrim 12</span>
+</div>
+<button class="font-caption-bold text-caption-bold text-primary flex items-center gap-0.5 py-0.5 px-1 hover:underline">
+<span>Relatório</span>
+<span class="material-symbols-outlined text-[15px]">chevron_right</span>
+</button>
+</div>
+</article>
+</div>
+<!-- Stop 3: HILLCREST #14 (EM DESTAQUE ALARGADO · EM CURSO / PRÓXIMO) -->
+<div class="relative">
+<!-- Blinking / Glowing Active Node Icon -->
+<div class="absolute -left-6 top-4 w-6 h-6 rounded-full bg-tertiary-container text-on-tertiary flex items-center justify-center ring-4 ring-amber-100 shadow-md z-10">
+<span class="material-symbols-outlined text-[15px] animate-spin" style="animation-duration: 4s;">navigation</span>
+</div>
+<article class="bg-surface-container-lowest rounded-2xl p-space-md border-2 border-primary shadow-lg relative overflow-hidden bg-gradient-to-b from-primary-soft/35 via-surface-container-lowest to-surface-container-lowest">
+<!-- Top Status Badges -->
+<div class="flex items-start justify-between gap-space-sm mb-2">
+<div class="flex items-center gap-2">
+<span class="font-data-mono-lg text-data-mono-lg font-bold text-on-surface">09:45 - 10:45</span>
+<span class="w-2 h-2 rounded-full bg-primary-container animate-pulse"></span>
+</div>
+<span class="inline-flex items-center gap-1.5 bg-warm-soft text-tertiary font-caption-bold text-caption-bold px-3 py-1 rounded-full shadow-xs border border-amber-200">
+<span class="w-2 h-2 rounded-full bg-tertiary-container animate-ping"></span>
+                EM CURSO / PRÓXIMO
+              </span>
+</div>
+<!-- Client & Service Title + Site Photo Thumbnail -->
+<div class="flex gap-3 mb-space-sm mt-1">
+<div class="relative w-16 h-16 rounded-xl overflow-hidden shrink-0 border border-border shadow-xs bg-muted">
+<!-- Illustrated Photo simulation for pool villa -->
+<div class="w-full h-full bg-gradient-to-br from-teal-400 via-secondary to-primary-deep flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined text-[28px]">pool</span>
+</div>
+<span class="absolute bottom-0 inset-x-0 bg-inverse-surface/75 text-[8px] font-caption-bold text-surface-bright text-center py-0.5">Lote 14</span>
+</div>
+<div class="flex-1">
+<h3 class="font-headline-section-mobile text-[18px] text-on-surface font-bold flex items-center gap-1.5">
+<span>3. Hillcrest #14</span>
+<span class="material-symbols-outlined text-secondary text-[20px]" title="Piscina prioritária">water_drop</span>
+</h3>
+<p class="font-body-dense text-secondary font-medium flex items-center gap-1 mt-0.5">
+<span class="material-symbols-outlined text-[16px]">pool</span>
+                  Piscina: Tratamento de algas &amp; regulação de pH
+                </p>
+<p class="font-caption text-caption text-on-surface-variant flex items-center gap-1 mt-1">
+<span class="material-symbols-outlined text-[15px] text-primary">pin_drop</span>
+<span>Estrada das Oliveiras, Lote 14 · Comporta</span>
+</p>
+</div>
+</div>
+<!-- Priority Alert Banner: Nível de pH Crítico -->
+<div class="bg-amber-50 border border-amber-200 rounded-xl p-2.5 mb-space-sm flex items-start gap-2.5">
+<span class="material-symbols-outlined text-amber-700 text-[20px] shrink-0 mt-0.5">warning</span>
+<div class="text-[12px] leading-tight">
+<span class="font-caption-bold text-amber-900 block mb-0.5">Alerta de Parâmetro Químico:</span>
+<span class="text-amber-800">Última telemetria indicou pH em 8.2 (Alcalino). Requer dosagem corretora de ácido redutor e choque de algicida.</span>
+</div>
+</div>
+<!-- Distance & ETA Strip -->
+<div class="grid grid-cols-2 gap-space-sm bg-accent-soft/70 rounded-xl p-2.5 mb-space-md border border-secondary-fixed">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-lg bg-surface-container-lowest flex items-center justify-center text-secondary shadow-xs">
+<span class="material-symbols-outlined text-[18px]">straighten</span>
+</div>
+<div>
+<span class="font-caption text-[11px] text-on-surface-variant block">Distância atual</span>
+<span class="font-data-mono text-data-mono font-bold text-on-surface">4.2 km</span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-lg bg-surface-container-lowest flex items-center justify-center text-tertiary shadow-xs">
+<span class="material-symbols-outlined text-[18px]">near_me</span>
+</div>
+<div>
+<span class="font-caption text-[11px] text-on-surface-variant block">Tempo estimado</span>
+<span class="font-data-mono text-data-mono font-bold text-tertiary">ETA 8 min</span>
+</div>
+</div>
+</div>
+<!-- Action Buttons: Waze/Maps + Check-in -->
+<div class="grid grid-cols-2 gap-space-sm">
+<button class="min-h-[46px] bg-primary hover:bg-primary-deep text-on-primary font-body-medium text-[13px] font-semibold rounded-xl flex items-center justify-center gap-2 shadow-sm transition-all active:scale-[0.98]">
+<span class="material-symbols-outlined text-[19px]">explore</span>
+<span>Navegar Waze / Maps</span>
+</button>
+<button class="min-h-[46px] bg-secondary-container text-on-secondary-fixed font-body-medium text-[13px] font-semibold rounded-xl flex items-center justify-center gap-2 border border-secondary/20 shadow-xs hover:bg-secondary-fixed transition-all active:scale-[0.98]">
+<span class="material-symbols-outlined text-[19px] text-secondary">how_to_reg</span>
+<span>Check-in no Local</span>
+</button>
+</div>
+</article>
+</div>
+<!-- Stop 4: Monte do Zambujeiro (Futuro com tempo de trânsito) -->
+<div class="relative group">
+<!-- Timeline Node Icon (Futuro / Pendente) -->
+<div class="absolute -left-6 top-3 w-6 h-6 rounded-full bg-surface-container-lowest border-2 border-outline-variant text-on-surface-variant flex items-center justify-center ring-4 ring-background shadow-xs z-10">
+<span class="font-caption-bold text-[11px]">4</span>
+</div>
+<article class="bg-surface-container-lowest rounded-xl p-space-md border border-border shadow-xs opacity-95 hover:opacity-100 transition-all">
+<div class="flex items-start justify-between gap-space-sm mb-1">
+<div class="flex items-center gap-2">
+<span class="font-data-mono text-data-mono font-semibold text-on-surface-variant">11:30 - 13:00</span>
+<span class="font-caption text-caption text-muted-foreground">· 1h 30m</span>
+</div>
+<span class="inline-flex items-center gap-1 bg-muted text-on-surface-variant font-caption-bold text-caption-bold px-2 py-0.5 rounded-full">
+<span class="material-symbols-outlined text-[13px]">hourglass_empty</span> Pendente
+              </span>
+</div>
+<div class="mt-1">
+<h3 class="font-card-title text-card-title text-on-surface">4. Monte do Zambujeiro</h3>
+<p class="font-body-dense text-body-dense text-primary-deep font-medium flex items-center gap-1 mt-0.5">
+<span class="material-symbols-outlined text-[16px]">yard</span>
+                Jardim: Corte de relva, arejamento e rega
+              </p>
+</div>
+<!-- Info de Trânsito Estimado -->
+<div class="flex items-center gap-1.5 bg-surface-container-low text-on-surface-variant text-[12px] rounded-lg px-2.5 py-1.5 mt-2 border border-border/50">
+<span class="material-symbols-outlined text-secondary text-[16px]">traffic</span>
+<span>Tempo de viagem previsto a partir da Comporta: <strong class="font-semibold text-on-surface">15 min de trânsito</strong></span>
+</div>
+<div class="flex items-center justify-between pt-2 mt-2 border-t border-border/60 text-on-surface-variant">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[15px] text-muted-foreground">pin_drop</span>
+<span class="font-caption text-caption truncate max-w-[200px]">Herdade do Zambujeiro</span>
+</div>
+<span class="font-caption text-caption text-muted-foreground">Técnico A. Silva</span>
+</div>
+</article>
+</div>
+<!-- Stop 5: Vivenda das Flores (Futuro com código do portão) -->
+<div class="relative group">
+<!-- Timeline Node Icon (Futuro / Pendente) -->
+<div class="absolute -left-6 top-3 w-6 h-6 rounded-full bg-surface-container-lowest border-2 border-outline-variant text-on-surface-variant flex items-center justify-center ring-4 ring-background shadow-xs z-10">
+<span class="font-caption-bold text-[11px]">5</span>
+</div>
+<article class="bg-surface-container-lowest rounded-xl p-space-md border border-border shadow-xs opacity-95 hover:opacity-100 transition-all">
+<div class="flex items-start justify-between gap-space-sm mb-1">
+<div class="flex items-center gap-2">
+<span class="font-data-mono text-data-mono font-semibold text-on-surface-variant">14:30 - 15:30</span>
+<span class="font-caption text-caption text-muted-foreground">· 1h 00m</span>
+</div>
+<span class="inline-flex items-center gap-1 bg-muted text-on-surface-variant font-caption-bold text-caption-bold px-2 py-0.5 rounded-full">
+<span class="material-symbols-outlined text-[13px]">hourglass_empty</span> Pendente
+              </span>
+</div>
+<div class="mt-1">
+<h3 class="font-card-title text-card-title text-on-surface">5. Vivenda das Flores</h3>
+<p class="font-body-dense text-body-dense text-secondary font-medium flex items-center gap-1 mt-0.5">
+<span class="material-symbols-outlined text-[16px]">pool</span>
+                Piscina: Limpeza de filtros e aspiração
+              </p>
+</div>
+<!-- Nota de Acesso Crítica com Código do Portão -->
+<div class="flex items-center justify-between bg-primary-soft/70 border border-primary/20 rounded-lg px-2.5 py-1.5 mt-2">
+<div class="flex items-center gap-1.5 text-[12px] text-primary-deep font-medium">
+<span class="material-symbols-outlined text-[17px] text-primary">key</span>
+<span>Nota de acesso ao quintal:</span>
+</div>
+<span class="font-data-mono font-bold text-[12px] bg-surface-container-lowest px-2 py-0.5 rounded border border-border text-on-surface">
+                Código portão: 4521
+              </span>
+</div>
+<div class="flex items-center justify-between pt-2 mt-2 border-t border-border/60 text-on-surface-variant">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[15px] text-muted-foreground">pin_drop</span>
+<span class="font-caption text-caption truncate max-w-[200px]">Bairro das Laranjeiras 7</span>
+</div>
+<span class="font-caption text-caption text-muted-foreground">Cliente aguarda</span>
+</div>
+</article>
+</div>
+</div>
+<!-- Quick Route End Summary Delight -->
+<div class="bg-surface-container-lowest border border-border rounded-xl p-space-md mt-space-md flex items-center gap-3 shadow-xs">
+<div class="w-10 h-10 rounded-full bg-accent-soft flex items-center justify-center text-secondary shrink-0">
+<span class="material-symbols-outlined text-[22px]">alt_route</span>
+</div>
+<div class="flex-1">
+<p class="font-body-medium font-semibold text-on-surface text-[13px]">Otimização de Rota Inteligente</p>
+<p class="font-caption text-caption text-on-surface-variant">Ordem planeada para economizar 18% em combustível no circuito Comporta.</p>
+</div>
+</div>
+</div>
+</main>
+<!-- Floating Action Button (FAB) ServNtrak -->
+<div class="fixed bottom-20 right-4 z-40">
+<button aria-label="Adicionar intervenção de emergência ou desvio" class="w-14 h-14 rounded-full bg-primary-container hover:bg-primary text-on-primary flex items-center justify-center shadow-[0_6px_20px_rgba(76,175,80,0.45)] active:scale-90 transition-all focus:outline-none">
+<span class="material-symbols-outlined text-[28px]">add</span>
+</button>
+</div>
+<!-- Bottom Navigation (Fiel ao ServNtrak com 'Agenda' Ativa) -->
+<nav class="fixed bottom-0 w-full z-50 pb-safe bg-surface-container-lowest/90 backdrop-blur-xl border-t border-border shadow-[0_-2px_12px_rgba(0,0,0,0.04)]">
+<div class="flex justify-between items-center h-16 px-space-xs">
+<a class="flex-1 flex flex-col items-center justify-center min-h-[48px] py-space-xs text-on-surface-variant transition-colors hover:text-on-surface" data-path="inicio" href="#">
+<span class="material-symbols-outlined text-[24px]">home</span>
+<span class="font-caption text-caption mt-space-xs leading-none">Início</span>
+</a>
+<a class="flex-1 flex flex-col items-center justify-center min-h-[48px] py-space-xs text-on-surface-variant transition-colors hover:text-on-surface" data-path="clientes" href="#">
+<span class="material-symbols-outlined text-[24px]">group</span>
+<span class="font-caption text-caption mt-space-xs leading-none">Clientes</span>
+</a>
+<!-- Active Tab: Agenda -->
+<a class="flex-1 flex flex-col items-center justify-center min-h-[48px] py-space-xs text-primary font-semibold transition-colors" data-path="agenda" href="#">
+<span class="material-symbols-outlined text-[24px]">calendar_today</span>
+<span class="font-caption text-caption mt-space-xs leading-none">Agenda</span>
+</a>
+<a class="flex-1 flex flex-col items-center justify-center min-h-[48px] py-space-xs text-on-surface-variant transition-colors hover:text-on-surface" data-path="relatorios" href="#">
+<span class="material-symbols-outlined text-[24px]">assignment</span>
+<span class="font-caption text-caption mt-space-xs leading-none">Relatórios</span>
+</a>
+<a class="flex-1 flex flex-col items-center justify-center min-h-[48px] py-space-xs text-on-surface-variant transition-colors hover:text-on-surface" data-path="perfil" href="#">
+<span class="material-symbols-outlined text-[24px]">account_circle</span>
+<span class="font-caption text-caption mt-space-xs leading-none">Perfil</span>
+</a>
+</div>
+</nav>
+</body></html>

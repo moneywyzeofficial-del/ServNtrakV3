@@ -1,0 +1,83 @@
+# Instruções e Prompts para o Google Stitch (stitch.withgoogle.com)
+
+Este guia explica como importar os ecrãs do ServNtrak para o **Google Stitch**.
+
+---
+
+## Passo 1: Importar o Design System
+
+1. No [Google Stitch](https://stitch.withgoogle.com), abre o teu projeto (ou cria um novo chamado **ServNtrak**).
+2. Vai a **Settings** $\rightarrow$ **Design System** $\rightarrow$ **Import DESIGN.md**.
+3. Seleciona o ficheiro local `DESIGN.md` que criámos em:
+   `D:\AI Projects\ServNtrak-design 15052026\stitch-export\DESIGN.md`
+   *(Em alternativa, podes abrir o ficheiro, copiar o texto todo e colar diretamente no diálogo).*
+4. Guarda as definições. A partir deste momento, todas as gerações do Stitch herdam a paleta oficial (Verde #4CAF50, Teal #009688, Laranja #E65100), tipografia e raio de cantos.
+
+---
+
+## Passo 2: Gerar os Ecrãs com Imagem de Referência + Prompt
+
+A forma com maior fidelidade visual no Stitch é o modo **Image-to-UI / Redesign**:
+
+1. Abre o ficheiro local [ServNtrak FSM Dashboard.html](file:///D:/AI%20Projects/ServNtrak-design%2015052026/servntrak/project/design-ref/ServNtrak%20FSM%20Dashboard.html) no teu navegador.
+2. Faz duplo clique ou clica no ícone de expandir no artboard pretendido para o ver em ecrã inteiro.
+3. Tira um print screen (`Win + Shift + S`) do ecrã.
+4. No Stitch, clica em **New Screen** $\rightarrow$ arrasta a imagem e cola o respetivo prompt abaixo:
+
+---
+
+### Ecrã 1: Técnico Móvel · Início (Home)
+
+**Prompt para o Stitch:**
+```text
+Cria o ecrã inicial móvel (formato iPhone/Android) para a app de terreno ServNtrak (gestão de jardinagem e piscinas) com base no DESIGN.md importado:
+
+- Cabeçalho Hero com gradiente verde (#4CAF50 a #357A38), logótipo ServNtrak, data em PT-PT ("Sexta-feira, 1 maio"), saudação "Bom dia, Tiago" e resumo "5 visitas hoje · próxima às 09:45".
+- Cartão de Meteorologia compacto com temperatura atual (22°C Alvito), ícone de sol e aviso subtil.
+- Bloco de "Acções rápidas" com 4 botões circulares em grelha: "Nova nota" (ícone nota verde), "Voz" (ícone microfone teal), "Foto" (ícone câmara laranja), "Tempo" (ícone nuvem verde escuro).
+- Cartão de destaque "Registo por Voz" com ícone de microfone teal e onda sonora (waveform), permitindo ditar relatórios rápidos de serviço.
+- Secção "Visitas de hoje" com linha de tempo (timeline vertical):
+  * 08:30 - Quinta da Aldegalega (Piscina · Manutenção semanal) [Estado: Concluído / check verde]
+  * 09:15 - Família Coronado (Jardim · Poda e adubação) [Estado: Concluído / check verde]
+  * 09:45 - Hillcrest #14 (Piscina · Tratamento de algas) [Estado: Próxima visita com badge verde e botão Navegar GPS]
+  * 11:30 - Monte do Zambujeiro (Jardim · Corte de relva) [Estado: Pendente]
+- Barra de navegação inferior (BottomNav) com 5 separadores: Início (ativo verde), Clientes, Agenda, Relatórios, Perfil.
+```
+
+---
+
+### Ecrã 2: Técnico Móvel · Agenda (Calendar)
+
+**Prompt para o Stitch:**
+```text
+Cria o ecrã móvel de Agenda para o técnico de terreno da ServNtrak com base no DESIGN.md:
+
+- Barra de topo com o título "Agenda" e seletor rápido dos dias da semana (S, T, Q, Q, S, S, D) com contagem de visitas por baixo de cada dia e o dia atual destacado a verde (#4CAF50).
+- Resumo do dia: "Sexta-feira, 1 de maio · 5 clientes agendados".
+- Filtro por tipo de serviço: pílulas clicáveis "Todos", "Piscinas", "Jardins".
+- Lista horária detalhada de trabalhos com cartões de bordas arredondadas (16px):
+  * Cada cartão mostra a hora prevista, duração (ex.: "45 min"), nome do cliente, tipo de serviço com tag colorida, morada com distância em km e botão de navegação rápida.
+  * O trabalho em curso ou próximo destaca-se com borda verde iluminada e hora estimada de chegada (ETA).
+- Botão de ação flutuante (FAB) no canto inferior direito para adicionar visita rápida ou reagendar.
+- BottomNav fixo no fundo da página.
+```
+
+---
+
+### Ecrã 3: Despacho Web · Painel de Gestão (Web Dashboard)
+
+**Prompt para o Stitch:**
+```text
+Cria o dashboard web para o operador de despacho da ServNtrak (resolução desktop 1440x900) com base no DESIGN.md:
+
+- Barra lateral de navegação (Sidebar) à esquerda com o logótipo ServNtrak, menu (Painel, Rotas, Clientes, Agenda, Faturação, Equipas) e perfil de utilizador no rodapé.
+- Cabeçalho superior com a data atual ("Sexta-feira, 1 maio"), saudação "Bom dia, Tiago", botão de "Filtros" e botão primário verde "+ Novo cliente".
+- Grelha superior com 4 cartões de KPIs:
+  1. "Clientes activos": 148 (+6 este mês)
+  2. "Visitas hoje": 47 (2 alertas de manutenção)
+  3. "Em rota": 12 técnicos (11/12 dentro do horário)
+  4. "Faturação maio": 48.210 € (+12% vs mês anterior)
+- Secção central dividida em duas colunas:
+  * Coluna esquerda (60%): Mapa interativo de rotas da região Alentejo com pins dos técnicos ativos, trajetos das carrinhas e pontos de paragem dos clientes (distinção entre piscinas e jardins).
+  * Coluna direita (40%): Gráfico de barras com visitas da semana (total 328 visitas, +18%) e lista com feed de atividade recente dos técnicos no terreno em tempo real.
+```

@@ -1,0 +1,57 @@
+# ServNtrak Design System
+> Field Service Management (FSM) para Jardinagem e Manutenção de Piscinas (Peralta Gardens)
+
+## Brand Identity & Colors
+
+```yaml
+tokens:
+  color:
+    primary: "#4CAF50"         # Verde Folha — Ações principais, estado 'Concluído'
+    primary-deep: "#357A38"    # Verde Escuro — Gradientes e contrastes elevados
+    primary-soft: "#E8F5E9"    # Verde Claro — Fundos subtis e badges de sucesso
+    accent: "#009688"          # Teal Onda — Ações de dados, métricas e gravação de voz
+    accent-soft: "#E0F2F1"     # Teal Suave — Badges de destaque
+    warm: "#E65100"            # Laranja — Faturação, alertas críticos e ação 'Próxima Visita'
+    warm-soft: "#FFF3E0"       # Laranja Suave — Destaque de avisos meteorológicos
+    background: "#FAFAF7"      # Off-white quente de fundo
+    card: "#FFFFFF"            # Fundo branco puro de cartões
+    border: "#E4E6E8"          # Bordas cinza subtis
+    foreground: "#263238"      # Slate Escuro — Texto principal de alta legibilidade
+    muted: "#EEF1F0"           # Cinza suave de controlo e botões neutros
+    muted-foreground: "#757575"# Cinza de texto secundário e legendas
+```
+
+## Typography
+
+- **Primary Font**: `Inter`, system-ui, sans-serif
+- **Monospace Font**: `Geist Mono`, ui-monospace, monospace (para códigos, horários e valores numéricos)
+- **Hierarchy**:
+  - H1 / Hero: 28px — 32px, Bold 800, tracking -0.03em
+  - H2 / Section Title: 18px — 20px, Bold 700, tracking -0.02em
+  - H3 / Card Title: 14px — 16px, Semi-Bold 600
+  - Body: 13px — 14px, Regular 400 ou Medium 500
+  - Captions / Meta: 11px — 12px, Regular 400 ou Semi-Bold 600, uppercase opcional
+
+## Component Patterns & Geometry
+
+- **Border Radius**:
+  - Cards: `16px` / `18px` (`rounded-2xl`)
+  - Buttons & Inputs: `12px` (`rounded-xl`)
+  - Badges & Status Pills: `9999px` (`rounded-full`)
+- **Shadows**:
+  - Cards normais: `0 1px 3px rgba(0,0,0,0.04)`
+  - Cartão em destaque (Próxima visita): `0 0 0 3px rgba(76, 175, 80, 0.12), 0 4px 14px rgba(76, 175, 80, 0.18)`
+  - Botão flutuante ou microfone: `0 4px 14px rgba(0, 150, 136, 0.35)`
+- **Glassmorphism / Gradients**:
+  - Hero Header: `linear-gradient(135deg, #4CAF50 0%, #357A38 100%)`
+  - Mesh overlay suave: radial gradientes a 20-30% de opacidade sobre o verde primário
+
+## UX & Business Domain Rules
+
+1. **Língua**: Português europeu (PT-PT) por defeito ("Início", "Agenda", "Clientes", "Relatórios", "Acções rápidas", "Faturação").
+2. **Contexto de Operação**:
+   - Técnicos no terreno: interface com botões grandes, contraste solar elevado, atalho direto para gravação de voz (transcrição de notas de serviço), atalho para câmara (registo de trabalho antes/depois), e GPS com cálculo de ETA para a próxima piscina/jardim.
+   - Despacho no escritório: visão de mapa das carrinhas/técnicos em rota (região Alentejo), grelha de indicadores chave (KPIs) e planeador de tarefas semanal tipo *swimlane*.
+3. **Safe Areas Móveis**:
+   - iOS: Topo 47px (Status bar), Fundo 34px (Home indicator).
+   - Android: Topo 40px (Status bar), Fundo 24px (Gesture bar).
