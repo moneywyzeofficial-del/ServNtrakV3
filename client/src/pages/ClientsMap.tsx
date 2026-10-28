@@ -62,12 +62,24 @@ function getClientIcon(client: Client) {
 export default function ClientsMap() {
   const { data: clients, isLoading } = useClients();
   const [mapType, setMapType] = useState<"street" | "satellite">("street");
+  const [serviceFilter, setServiceFilter] = useState<"all" | "pool" | "garden">("all");
 
   const clientsWithLocation = clients?.filter(
     (c) => c.latitude !== null && c.longitude !== null
   ) || [];
 
-  const mapCenter: [number, number] = clientsWithLocation.length > 0
+  const filteredClients = clientsWithLocation.filter((c) => {
+    if (serviceFilter === "pool") return c.hasPool;
+    if (serviceFilter === "garden") return c.hasGarden;
+    return true;
+  });
+
+  const poolCount = clientsWithLocation.filter((c) => c.hasPool).length;
+  const gardenCount = clientsWithLocation.filter((c) => c.hasGarden).length;
+
+  const mapCenter: [number, number] = filteredClients.length > 0
+    ? [filteredClients[0].latitude!, filteredClients[0].longitude!]
+    : clientsWithLocation.length > 0
     ? [clientsWithLocation[0].latitude!, clientsWithLocation[0].longitude!]
     : defaultCenter;
 
@@ -90,6 +102,54 @@ export default function ClientsMap() {
         }
       />
 
+      {/* Barra de Filtros de Serviço (Design Oficial ServNtrak) */}
+      <div className="bg-white border-b border-border px-4 py-2.5 flex items-center justify-between gap-2 overflow-x-auto">
+        <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => setServiceFilter("all")}
+            className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all touch-manipulation min-h-[36px] ${
+              serviceFilter === "all"
+                ? "bg-primary text-white shadow-sm"
+                : "bg-muted text-slate-700 hover:bg-slate-200"
+            }`}
+            data-testid="filter-all-clients"
+          >
+            Todos ({clientsWithLocation.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => setServiceFilter("pool")}
+            className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all touch-manipulation min-h-[36px] flex items-center gap-1 ${
+              serviceFilter === "pool"
+                ? "bg-teal-600 text-white shadow-sm"
+                : "bg-teal-50 text-teal-800 hover:bg-teal-100"
+            }`}
+            data-testid="filter-pool-clients"
+          >
+            <Waves className="w-3.5 h-3.5" />
+            Piscinas ({poolCount})
+          </button>
+          <button
+            type="button"
+            onClick={() => setServiceFilter("garden")}
+            className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all touch-manipulation min-h-[36px] flex items-center gap-1 ${
+              serviceFilter === "garden"
+                ? "bg-emerald-700 text-white shadow-sm"
+                : "bg-emerald-50 text-emerald-800 hover:bg-emerald-100"
+            }`}
+            data-testid="filter-garden-clients"
+          >
+            <Leaf className="w-3.5 h-3.5" />
+            Jardins ({gardenCount})
+          </button>
+        </div>
+
+        <span className="text-[11px] font-semibold text-slate-500 hidden sm:inline shrink-0">
+          Alentejo · {filteredClients.length} no mapa
+        </span>
+      </div>
+
       <div className="h-[calc(100vh-180px)] relative">
         {isLoading ? (
           <div className="flex items-center justify-center h-full">
@@ -108,7 +168,7 @@ export default function ClientsMap() {
                 attribution={tileLayers[mapType].attribution}
                 url={tileLayers[mapType].url}
               />
-              {clientsWithLocation.map((client) => (
+              {filteredClients.map((client) => (
                 <Marker
                   key={client.id}
                   position={[client.latitude!, client.longitude!]}

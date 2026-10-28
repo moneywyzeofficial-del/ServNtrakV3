@@ -20,6 +20,8 @@ import {
 } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
 import { DocumentScanDialog } from "@/components/DocumentScanDialog";
+import { QuickPoolTestDialog } from "@/components/pool/QuickPoolTestDialog";
+import { BeforeAfterPhotoDialog } from "@/components/photos/BeforeAfterPhotoDialog";
 import VoiceToText from "@/components/VoiceToText";
 import { PushHealthBanner } from "@/components/PushHealthBanner";
 import { HomeActionMenus } from "@/components/HomeActionMenus";
@@ -76,7 +78,7 @@ function WeatherStrip() {
     return (
       <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
         <Sun className="w-4 h-4 text-muted-foreground" strokeWidth={2.5} />
-        <span>--°C</span>
+        <span>--Â°C</span>
       </div>
     );
   }
@@ -89,7 +91,7 @@ function WeatherStrip() {
   return (
     <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
       <WeatherIcon className="w-4 h-4 text-muted-foreground" strokeWidth={2.5} />
-      <span>{Math.round(weather.temperature)}°C</span>
+      <span>{Math.round(weather.temperature)}Â°C</span>
     </div>
   );
 }
@@ -150,11 +152,11 @@ function WeatherCard() {
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-baseline gap-1.5">
-              <span className="text-3xl font-bold text-slate-900">{Math.round(weather.temperature)}°</span>
+              <span className="text-3xl font-bold text-slate-900">{Math.round(weather.temperature)}Â°</span>
               <span className="text-sm text-slate-400 font-medium">C</span>
               {weather.todayForecast && (
                 <span className="text-xs text-slate-400 font-medium ml-1">
-                  {weather.todayForecast.temperatureMin}° / {weather.todayForecast.temperatureMax}°
+                  {weather.todayForecast.temperatureMin}Â° / {weather.todayForecast.temperatureMax}Â°
                 </span>
               )}
             </div>
@@ -230,7 +232,7 @@ function WeatherCard() {
                     "text-[11px] font-bold",
                     isFirst ? "text-slate-700" : "text-slate-600"
                   )}>
-                    {h.temperature}°
+                    {h.temperature}Â°
                   </span>
                 </div>
               );
@@ -271,6 +273,9 @@ export default function Home() {
   const [ajustarVisita, setAjustarVisita] = useState<VisitaConcluida | null>(null);
   const [ajustarMinutos, setAjustarMinutos] = useState("");
   const [scanOpen, setScanOpen] = useState(false);
+  const [poolDialogOpen, setPoolDialogOpen] = useState(false);
+  const [photoDialogOpen, setPhotoDialogOpen] = useState(false);
+  const [selectedClientForSpecialty, setSelectedClientForSpecialty] = useState<string | undefined>();
   const [showVoiceReport, setShowVoiceReport] = useState(false);
   const [voiceSummary, setVoiceSummary] = useState<string | null>(null);
   const [voiceLoading, setVoiceLoading] = useState(false);
@@ -396,10 +401,10 @@ export default function Home() {
         setDraft(data);
         setShowModal(true);
       } else {
-        setVoiceSummary(`Erro: ${data.message ?? "Não foi possível processar o agendamento."}`);
+        setVoiceSummary(`Erro: ${data.message ?? "NÃ£o foi possÃ­vel processar o agendamento."}`);
       }
     } catch {
-      setVoiceSummary("Erro de ligação ao servidor.");
+      setVoiceSummary("Erro de ligaÃ§Ã£o ao servidor.");
     } finally {
       setVoiceLoading(false);
     }
@@ -414,7 +419,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background pb-24 page-transition">
 
-      {/* ── HERO HEADER (V0 — compact, gradient mesh) ───────────────── */}
+      {/* â”€â”€ HERO HEADER (V0 â€” compact, gradient mesh) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <header
         className="relative overflow-hidden px-[18px] pt-3 pb-3.5"
         style={{ background: "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-strong)) 100%)" }}
@@ -443,11 +448,11 @@ export default function Home() {
             {greeting}, {userName}
           </h1>
           <p className="text-white/90 text-[12px] mt-1 font-medium">
-            {isLoading ? "A carregar…" : (
+            {isLoading ? "A carregarâ€¦" : (
               <>
                 <span className="font-bold text-white">{todayAppointments.length} visita{todayAppointments.length !== 1 ? "s" : ""}</span> hoje
                 {nextAppointment && (
-                  <> · próxima às <span className="font-bold text-white">{format(new Date(nextAppointment.date), "HH:mm")}</span></>
+                  <> Â· prÃ³xima Ã s <span className="font-bold text-white">{format(new Date(nextAppointment.date), "HH:mm")}</span></>
                 )}
               </>
             )}
@@ -457,12 +462,12 @@ export default function Home() {
 
       <main className="flex-1 px-4 py-5">
 
-        {/* ── PUSH HEALTH BANNER ─────────────────── */}
+        {/* â”€â”€ PUSH HEALTH BANNER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         <div className="mb-4">
           <PushHealthBanner variant="prominent" />
         </div>
 
-        {/* ── GPS ERROR ──────────────────────────── */}
+        {/* â”€â”€ GPS ERROR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         {geo.erro && (
           <div className="bg-destructive/10 border border-destructive/20 rounded-2xl p-4 flex items-start gap-3 mb-4" data-testid="alert-gps-error">
             <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
@@ -476,7 +481,7 @@ export default function Home() {
           </div>
         )}
 
-        {/* ── VISIT CONFIRMATION CARDS ────────────── */}
+        {/* â”€â”€ VISIT CONFIRMATION CARDS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         {geo.visitasPendentesConfirmacao.map(visita => (
           <div
             key={`${visita.clienteId}-${visita.inicio.getTime()}`}
@@ -488,7 +493,7 @@ export default function Home() {
                 <CheckCircle2 className="w-5 h-5 text-primary" aria-hidden="true" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-bold uppercase tracking-widest text-primary mb-1">Visita concluída</p>
+                <p className="text-xs font-bold uppercase tracking-widest text-primary mb-1">Visita concluÃ­da</p>
                 <h4 className="font-bold text-slate-900 text-lg truncate">{visita.clienteNome}</h4>
               </div>
             </div>
@@ -497,7 +502,7 @@ export default function Home() {
                 <Clock className="w-4 h-4 text-slate-400" />
                 <span className="tabular-nums">
                   {visita.inicio.toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" })}
-                  {" → "}
+                  {" â†’ "}
                   {visita.fim.toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" })}
                 </span>
               </div>
@@ -509,7 +514,7 @@ export default function Home() {
                 <input
                   type="number"
                   className="flex-1 border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-primary/30"
-                  placeholder="Duração real (min)"
+                  placeholder="DuraÃ§Ã£o real (min)"
                   value={ajustarMinutos}
                   onChange={e => setAjustarMinutos(e.target.value)}
                   autoFocus
@@ -563,7 +568,7 @@ export default function Home() {
           </div>
         ))}
 
-        {/* ── ACTIVE VISIT CARD ──────────────────── */}
+        {/* â”€â”€ ACTIVE VISIT CARD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         {geo.visitaAtiva && (
           <div
             className="bg-primary rounded-2xl p-5 shadow-lg text-white relative overflow-hidden mb-4"
@@ -579,7 +584,7 @@ export default function Home() {
               <div className="flex items-center gap-4 text-white/90 text-sm">
                 <div className="flex items-center gap-1.5">
                   <Clock className="w-4 h-4" />
-                  <span>Início: {geo.visitaAtiva.inicio.toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" })}</span>
+                  <span>InÃ­cio: {geo.visitaAtiva.inicio.toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" })}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <MapPin className="w-4 h-4" />
@@ -590,10 +595,94 @@ export default function Home() {
           </div>
         )}
 
-        {/* ── WEATHER CARD ──────────────────────── */}
+        {/* â”€â”€ WEATHER CARD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         <WeatherCard />
 
-        {/* ── TIMELINE ──────────────────────────── */}
+        {/* AcÃ§Ãµes RÃ¡pidas (Outdoor Touch Targets >= 48px) */}
+        <section aria-label="AcÃ§Ãµes rÃ¡pidas" className="mb-4">
+          <div className="flex justify-between items-center mb-2.5 px-0.5">
+            <h2 className="text-[15px] font-bold text-slate-900 tracking-tight">AcÃ§Ãµes rÃ¡pidas</h2>
+          </div>
+          <div className="grid grid-cols-4 gap-2.5">
+            <Link
+              href="/calendar"
+              className="bg-muted hover:bg-slate-200/70 rounded-2xl border border-border p-2.5 flex flex-col items-center gap-1.5 touch-manipulation active:scale-[0.97] transition-all min-h-[58px]"
+              data-testid="link-quick-nova-visita"
+            >
+              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center shadow-sm">
+                <Plus className="w-5 h-5 text-white" strokeWidth={2.5} />
+              </div>
+              <span className="text-[11px] font-bold text-slate-800 text-center leading-tight">Nova visita</span>
+            </Link>
+
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedClientForSpecialty(nextAppointment?.client.name);
+                setPoolDialogOpen(true);
+              }}
+              className="bg-muted hover:bg-slate-200/70 rounded-2xl border border-border p-2.5 flex flex-col items-center gap-1.5 touch-manipulation active:scale-[0.97] transition-all min-h-[58px] text-left"
+              data-testid="button-quick-pool-test"
+            >
+              <div className="w-10 h-10 rounded-full bg-[#009688] flex items-center justify-center shadow-sm">
+                <Droplets className="w-5 h-5 text-white" strokeWidth={2.2} />
+              </div>
+              <span className="text-[11px] font-bold text-slate-800 text-center leading-tight">Água / pH</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedClientForSpecialty(nextAppointment?.client.name);
+                setPhotoDialogOpen(true);
+              }}
+              className="bg-muted hover:bg-slate-200/70 rounded-2xl border border-border p-2.5 flex flex-col items-center gap-1.5 touch-manipulation active:scale-[0.97] transition-all min-h-[58px] text-left"
+              data-testid="button-quick-before-after"
+            >
+              <div className="w-10 h-10 rounded-full bg-[#E65100] flex items-center justify-center shadow-sm">
+                <Camera className="w-5 h-5 text-white" strokeWidth={2.2} />
+              </div>
+              <span className="text-[11px] font-bold text-slate-800 text-center leading-tight">Antes/Depois</span>
+            </button>
+
+            <Link
+              href="/map"
+              className="bg-muted hover:bg-slate-200/70 rounded-2xl border border-border p-2.5 flex flex-col items-center gap-1.5 touch-manipulation active:scale-[0.97] transition-all min-h-[58px]"
+              data-testid="link-quick-mapa"
+            >
+              <div className="w-10 h-10 rounded-full bg-[#357A38] flex items-center justify-center shadow-sm">
+                <Map className="w-5 h-5 text-white" strokeWidth={2.2} />
+              </div>
+              <span className="text-[11px] font-bold text-slate-800 text-center leading-tight">Rotas</span>
+            </Link>
+          </div>
+        </section>
+
+        {/* Registo por Voz (Hands-free / Luvas de Trabalho) */}
+        <button
+          type="button"
+          onClick={() => { setShowVoiceReport(v => !v); setVoiceSummary(null); }}
+          className="w-full bg-white hover:bg-slate-50/80 rounded-2xl border border-slate-200 shadow-sm p-3.5 flex items-center gap-3.5 mb-5 active:scale-[0.99] transition-all text-left touch-manipulation focus-visible:ring-2 focus-visible:ring-primary/40"
+          data-testid="button-voice-prominent-card"
+        >
+          <div
+            className="w-12 h-12 rounded-full flex items-center justify-center shrink-0 shadow-md"
+            style={{ background: "linear-gradient(135deg, #009688 0%, #00695C 100%)" }}
+          >
+            <Mic className="w-6 h-6 text-white" strokeWidth={2.2} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-[14px] font-bold text-slate-900 leading-tight">Registo por voz (MÃ£os livres)</div>
+            <div className="text-[12px] text-slate-600 mt-0.5 truncate">Dita tarefas, notas de piscina ou despesasâ€¦</div>
+          </div>
+          <div className="flex items-center gap-1 pr-1 shrink-0">
+            <span className="w-1 h-3.5 bg-accent/40 rounded-full animate-pulse" />
+            <span className="w-1 h-5 bg-accent rounded-full animate-pulse" style={{ animationDelay: "150ms" }} />
+            <span className="w-1 h-2.5 bg-accent/60 rounded-full animate-pulse" style={{ animationDelay: "300ms" }} />
+          </div>
+        </button>
+
+        {/* â”€â”€ TIMELINE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         {isLoading ? (
           <div className="flex justify-center py-10">
             <Loader2 className="w-7 h-7 text-primary animate-spin" />
@@ -677,10 +766,44 @@ export default function Home() {
                           </div>
                         )}
 
+                        {/* Ações Específicas de Terreno */}
+                        <div className="mt-3 flex flex-wrap items-center gap-2">
+                          {(apt.type === "Pool" || apt.client.hasPool) && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setSelectedClientForSpecialty(apt.client.name);
+                                setPoolDialogOpen(true);
+                              }}
+                              className="px-3 py-2 rounded-xl bg-teal-50 hover:bg-teal-100 border border-teal-200 text-teal-900 text-xs font-bold flex items-center gap-1.5 touch-manipulation transition-colors min-h-[38px]"
+                              data-testid={`button-pool-test-${apt.id}`}
+                            >
+                              <Droplets className="w-3.5 h-3.5 text-teal-600" />
+                              pH & Cloro
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setSelectedClientForSpecialty(apt.client.name);
+                              setPhotoDialogOpen(true);
+                            }}
+                            className="px-3 py-2 rounded-xl bg-orange-50 hover:bg-orange-100 border border-orange-200 text-orange-900 text-xs font-bold flex items-center gap-1.5 touch-manipulation transition-colors min-h-[38px]"
+                            data-testid={`button-photo-before-after-${apt.id}`}
+                          >
+                            <Camera className="w-3.5 h-3.5 text-orange-600" />
+                            Antes / Depois
+                          </button>
+                        </div>
+
                         {isNext && apt.client.address && (
                           <div className="mt-4 pt-4 border-t border-slate-100 flex gap-2.5">
                             <button
-                              className="flex-1 bg-primary hover:bg-primary/90 text-white text-[13px] font-bold py-2.5 rounded-xl transition-colors flex justify-center items-center gap-2"
+                              className="flex-1 min-h-[48px] bg-primary hover:bg-primary/90 text-white text-[14px] font-bold py-3 px-4 rounded-xl transition-all shadow-sm flex justify-center items-center gap-2 touch-manipulation active:scale-[0.98]"
                               onClick={e => {
                                 e.preventDefault();
                                 window.open(`https://maps.google.com/maps?q=${encodeURIComponent(apt.client.address!)}`, "_blank");
@@ -694,12 +817,12 @@ export default function Home() {
                               href={`/clients/${apt.clientId}`}
                               onClick={e => e.stopPropagation()}
                             >
-<button
-                                className="px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition-colors font-bold flex justify-center items-center"
+                              <button
+                                className="min-h-[48px] px-5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl transition-all font-bold flex justify-center items-center touch-manipulation active:scale-[0.98]"
                                 data-testid="button-view-client"
                                 aria-label="Ver cliente"
                               >
-                                <CheckCircle2 className="w-5 h-5" />
+                                <CheckCircle2 className="w-5 h-5 text-primary" />
                               </button>
                             </Link>
                           </div>
@@ -726,7 +849,7 @@ export default function Home() {
           </div>
         )}
 
-        {/* ── PENDING PAYMENTS ──────────────────── */}
+        {/* â”€â”€ PENDING PAYMENTS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         {unpaidCount > 0 && (
           <Link href="/billing" data-testid="link-unpaid-strip">
             <div className="mb-6 bg-destructive/10 border border-destructive/20 rounded-2xl p-4 flex items-start gap-3 shadow-sm">
@@ -736,7 +859,7 @@ export default function Home() {
               <div className="flex-1">
                 <h4 className="text-[14px] font-bold text-destructive">Pagamentos Pendentes</h4>
                 <p className="text-[13px] text-destructive/80 mt-0.5 font-medium" data-testid="text-unpaid-total">
-                  Tem {unpaidTotal.toFixed(2)}€ ({unpaidCount} serviço{unpaidCount !== 1 ? "s" : ""}) por cobrar.
+                  Tem {unpaidTotal.toFixed(2)}â‚¬ ({unpaidCount} serviÃ§o{unpaidCount !== 1 ? "s" : ""}) por cobrar.
                 </p>
                 <span className="mt-3 inline-block text-[12px] font-bold text-destructive bg-destructive/20 px-3 py-1.5 rounded-lg">
                   Cobrar Agora
@@ -754,7 +877,7 @@ export default function Home() {
           }}
         />
 
-        {/* ── GPS TRACKING ─────────────────────── */}
+        {/* â”€â”€ GPS TRACKING â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         <button
           onClick={geo.ativo ? geo.parar : geo.iniciar}
           className={cn(
@@ -804,7 +927,7 @@ export default function Home() {
                 />
                 <datalist id="client-suggestions">
                   {(() => {
-                    const normalise = (s: string) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+                    const normalise = (s: string) => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
                     const q = normalise(draft.cliente);
                     return allClients
                       .filter(c => normalise(c.name).includes(q) || (q.length >= 3 && normalise(c.address ?? "").includes(q)))
@@ -902,6 +1025,19 @@ export default function Home() {
           </div>
         </div>
       )}
+
+      <QuickPoolTestDialog
+        open={poolDialogOpen}
+        onOpenChange={setPoolDialogOpen}
+        clientName={selectedClientForSpecialty}
+      />
+
+      <BeforeAfterPhotoDialog
+        open={photoDialogOpen}
+        onOpenChange={setPhotoDialogOpen}
+        clientName={selectedClientForSpecialty}
+      />
+
       <BottomNav />
 
       <style dangerouslySetInnerHTML={{__html: `
