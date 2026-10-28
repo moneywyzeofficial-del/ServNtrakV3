@@ -4,7 +4,34 @@ import { useClients, useDeleteClient } from "@/hooks/use-clients";
 import { useAppointments } from "@/hooks/use-appointments";
 import { BottomNav } from "@/components/BottomNav";
 import { Link } from "wouter";
-import { Search, Leaf, Waves, ThermometerSun, Loader2, Phone, Users, Euro, Clock, ChevronRight, ArrowUpDown, CheckCircle, AlertCircle, Calendar, CalendarDays, Trash2, MapPin, ChevronLeft, ChevronsLeft, ChevronsRight, UserPlus } from "lucide-react";
+import {
+  Search,
+  Leaf,
+  Waves,
+  ThermometerSun,
+  Loader2,
+  Phone,
+  Users,
+  Euro,
+  Clock,
+  ChevronRight,
+  ArrowUpDown,
+  CheckCircle,
+  Calendar,
+  CalendarDays,
+  Trash2,
+  MapPin,
+  ChevronLeft,
+  ChevronsLeft,
+  ChevronsRight,
+  UserPlus,
+  Navigation,
+  Map as MapIcon,
+  List as ListIcon,
+  X,
+  User,
+  Sparkles,
+} from "lucide-react";
 import type { Client, ClientPaymentWithClient } from "@shared/schema";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -38,7 +65,7 @@ type ServiceFilter = "all" | "garden" | "pool" | "jacuzzi";
 type BillingFilter = "all" | "monthly" | "hourly" | "per_visit";
 type SortOption = "name" | "value" | "recent";
 
-const PAGE_SIZE = 15;
+const PAGE_SIZE = 12;
 
 export default function Clients() {
   const { data: clients, isLoading } = useClients();
@@ -48,6 +75,7 @@ export default function Clients() {
   const deleteTargetRef = useRef<number | null>(null);
   const [search, setSearch] = useState("");
   const [serviceFilter, setServiceFilter] = useState<ServiceFilter>("all");
+  const [localityFilter, setLocalityFilter] = useState<string | null>(null);
   const [billingFilter, setBillingFilter] = useState<BillingFilter>("all");
   const [sortBy, setSortBy] = useState<SortOption>("name");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
@@ -73,37 +101,45 @@ export default function Clients() {
     if (!clients) return { total: 0, garden: 0, pool: 0, jacuzzi: 0, monthlyRevenue: 0 };
     return {
       total: clients.length,
-      garden: clients.filter(c => c.hasGarden).length,
-      pool: clients.filter(c => c.hasPool).length,
-      jacuzzi: clients.filter(c => c.hasJacuzzi).length,
+      garden: clients.filter((c) => c.hasGarden).length,
+      pool: clients.filter((c) => c.hasPool).length,
+      jacuzzi: clients.filter((c) => c.hasJacuzzi).length,
       monthlyRevenue: clients
-        .filter(c => c.billingType === 'monthly')
+        .filter((c) => c.billingType === 'monthly')
         .reduce((sum, c) => sum + (c.monthlyRate || 0), 0),
     };
+  }, [clients]);
+
+  const uniqueLocalities = useMemo(() => {
+    if (!clients) return [];
+    const set = new Set<string>();
+    clients.forEach((c) => {
+      if (c.locality && c.locality.trim().length > 1) {
+        set.add(c.locality.trim());
+      }
+    });
+    return Array.from(set).slice(0, 4);
   }, [clients]);
 
   const paymentStatusMap = useMemo(() => {
     const map = new Map<number, 'paid' | 'pending' | 'none'>();
     if (!currentMonthPayments) return map;
-    currentMonthPayments.forEach(payment => {
+    currentMonthPayments.forEach((payment) => {
       map.set(payment.clientId, payment.isPaid ? 'paid' : 'pending');
     });
     return map;
   }, [currentMonthPayments]);
 
-  const getPaymentStatus = (client: Client): 'paid' | 'pending' | 'none' => {
-    if (client.billingType !== 'monthly') return 'none';
-    return paymentStatusMap.get(client.id) || 'none';
-  };
-
   const filteredAndSortedClients = useMemo(() => {
-    let result = clients?.filter(c =>
+    let result = clients?.filter((c) =>
       c.name.toLowerCase().includes(search.toLowerCase()) ||
-      c.address?.toLowerCase().includes(search.toLowerCase())
+      c.address?.toLowerCase().includes(search.toLowerCase()) ||
+      c.locality?.toLowerCase().includes(search.toLowerCase()) ||
+      `#c-${c.id}`.includes(search.toLowerCase())
     ) || [];
 
     if (serviceFilter !== "all") {
-      result = result.filter(c => {
+      result = result.filter((c) => {
         if (serviceFilter === "garden") return c.hasGarden;
         if (serviceFilter === "pool") return c.hasPool;
         if (serviceFilter === "jacuzzi") return c.hasJacuzzi;
@@ -111,8 +147,12 @@ export default function Clients() {
       });
     }
 
+    if (localityFilter) {
+      result = result.filter((c) => c.locality?.toLowerCase() === localityFilter.toLowerCase());
+    }
+
     if (billingFilter !== "all") {
-      result = result.filter(c => c.billingType === billingFilter);
+      result = result.filter((c) => c.billingType === billingFilter);
     }
 
     const dirMult = sortDir === "asc" ? 1 : -1;
@@ -130,11 +170,11 @@ export default function Clients() {
     });
 
     return result;
-  }, [clients, search, serviceFilter, billingFilter, sortBy, sortDir]);
+  }, [clients, search, serviceFilter, localityFilter, billingFilter, sortBy, sortDir]);
 
   useEffect(() => {
     setPage(1);
-  }, [search, serviceFilter, billingFilter, sortBy, sortDir]);
+  }, [search, serviceFilter, localityFilter, billingFilter, sortBy, sortDir]);
 
   const nextVisits = useMemo(() => {
     const map = new Map<number, { date: Date; type: string; isCompleted: boolean }>();
@@ -151,7 +191,7 @@ export default function Clients() {
 
   const getClientThumbnail = (client: Client) => client.housePhotoUrl || client.profilePhotoUrl || null;
   const getInitials = (name: string) =>
-    name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
 
   const getClientValue = (client: Client) => {
     if (client.billingType === 'monthly' && client.monthlyRate) return `${client.monthlyRate}€/mês`;
@@ -164,29 +204,29 @@ export default function Clients() {
     const nv = nextVisits.get(client.id);
     if (!nv) {
       const active = client.hasGarden || client.hasPool || client.hasJacuzzi;
-      return active ? { label: "Ativo", color: "bg-green-100 text-green-700" } : { label: "Sem serviço", color: "bg-muted text-muted-foreground" };
+      return active ? { label: "Ativo", color: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300" } : { label: "Sem serviço", color: "bg-muted text-muted-foreground" };
     }
-    if (nv.isCompleted) return { label: "Concluído", color: "bg-green-100 text-green-700" };
+    if (nv.isCompleted) return { label: "Concluído", color: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300" };
     const now = Date.now();
     const d = nv.date.getTime();
     const day = 24 * 60 * 60 * 1000;
-    if (d < now - day) return { label: "Atrasado", color: "bg-red-100 text-red-700" };
-    if (d < now + day) return { label: "Hoje", color: "bg-amber-100 text-amber-700" };
-    if (d < now + 2 * day) return { label: "Amanhã", color: "bg-blue-100 text-blue-700" };
-    if (d < now + 7 * day) return { label: "Em breve", color: "bg-blue-100 text-blue-700" };
+    if (d < now - day) return { label: "Atrasado", color: "bg-red-100 text-red-800 dark:bg-red-950/60 dark:text-red-300" };
+    if (d < now + day) return { label: "Hoje", color: "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300" };
+    if (d < now + 2 * day) return { label: "Amanhã", color: "bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300" };
+    if (d < now + 7 * day) return { label: "Em breve", color: "bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300" };
     return { label: "Agendado", color: "bg-muted text-muted-foreground" };
   };
 
-  const filterButtons: { key: ServiceFilter; label: string }[] = [
-    { key: "all", label: "Todos" },
-    { key: "garden", label: "Jardim" },
-    { key: "pool", label: "Piscina" },
-    { key: "jacuzzi", label: "Jacuzzi" },
-  ];
+  const getMapsUrl = (c: Client) => {
+    if (c.latitude && c.longitude) {
+      return `https://www.google.com/maps?q=${c.latitude},${c.longitude}`;
+    }
+    return `https://www.google.com/maps/search/${encodeURIComponent(c.address || c.locality || c.name)}`;
+  };
 
   const handleDropdownSort = (option: SortOption) => {
     if (sortBy === option) {
-      setSortDir(d => d === "asc" ? "desc" : "asc");
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
     } else {
       setSortBy(option);
       setSortDir("asc");
@@ -201,223 +241,370 @@ export default function Clients() {
   const totalPages = Math.ceil(filteredAndSortedClients.length / PAGE_SIZE);
 
   return (
-    <div className="min-h-screen bg-background pb-24 page-transition">
+    <div className="min-h-screen bg-background pb-28 page-transition">
       <PageHeader
         title="Clientes"
-        subtitle="Lista, mapa e funcionários"
+        subtitle="Gestão e lista de campo"
         backHref="/more"
       />
 
-      {/* Content */}
-      <div className="px-5 py-4 space-y-4">
-        {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
-          <Input
-            placeholder="Pesquisar clientes..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 rounded-xl bg-muted/50 border-none shadow-inner"
-            data-testid="input-search-clients"
-          />
-        </div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-4 gap-2">
-          <div className="bg-card rounded-xl border border-border/30 p-3 text-center shadow-sm">
-            <Users className="w-4 h-4 mx-auto mb-1.5 text-primary" aria-hidden="true" />
-            <p className="text-lg font-bold text-foreground" data-testid="text-total-clients">{stats.total}</p>
-            <p className="text-[10px] text-muted-foreground font-medium">Total</p>
-          </div>
-          <div className="bg-card rounded-xl border border-border/30 p-3 text-center shadow-sm">
-            <Leaf className="w-4 h-4 mx-auto mb-1.5 text-primary" aria-hidden="true" />
-            <p className="text-lg font-bold text-foreground">{stats.garden}</p>
-            <p className="text-[10px] text-muted-foreground font-medium">Jardim</p>
-          </div>
-          <div className="bg-card rounded-xl border border-border/30 p-3 text-center shadow-sm">
-            <Waves className="w-4 h-4 mx-auto mb-1.5 text-primary" aria-hidden="true" />
-            <p className="text-lg font-bold text-foreground">{stats.pool}</p>
-            <p className="text-[10px] text-muted-foreground font-medium">Piscina</p>
-          </div>
-          <div className="bg-card rounded-xl border border-border/30 p-3 text-center shadow-sm">
-            <Euro className="w-4 h-4 mx-auto mb-1.5 text-primary" aria-hidden="true" />
-            <p className="text-lg font-bold text-foreground">{stats.monthlyRevenue}€</p>
-            <p className="text-[10px] text-muted-foreground font-medium">Mensal</p>
-          </div>
-        </div>
-
-        {/* Filters + Sort */}
-        <div className="flex items-center gap-2">
-          <div className="flex-1 flex gap-1 overflow-x-auto pb-0.5">
-            {filterButtons.map(({ key, label }) => (
+      <div className="max-w-4xl mx-auto px-4 py-3 space-y-4">
+        {/* Pesquisa & Filtros Rápidos (Inspirado no Google Stitch) */}
+        <div className="space-y-2.5">
+          <div className="relative w-full">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
+            <Input
+              placeholder="Pesquisar por nome, morada ou código (#C-...)"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="h-12 pl-10 pr-10 rounded-2xl bg-card border-border/50 text-foreground placeholder:text-muted-foreground shadow-xs text-sm"
+              data-testid="input-search-clients"
+            />
+            {search && (
               <button
-                key={key}
-                onClick={() => setServiceFilter(key)}
-                className={cn(
-                  "shrink-0 h-8 px-3 rounded-full text-xs font-semibold transition-colors",
-                  serviceFilter === key
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                )}
-                data-testid={`button-filter-${key}`}
+                type="button"
+                onClick={() => setSearch("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground active:scale-90 transition-transform"
+                aria-label="Limpar pesquisa"
               >
-                {label}
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+
+          {/* Quick Filter Pills com Contadores */}
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5" role="tablist">
+            <button
+              type="button"
+              onClick={() => { setServiceFilter("all"); setLocalityFilter(null); }}
+              className={cn(
+                "shrink-0 px-3.5 py-1.5 rounded-full text-xs font-semibold active:scale-95 transition-all shadow-2xs",
+                serviceFilter === "all" && !localityFilter
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-card text-muted-foreground hover:bg-muted border border-border/40"
+              )}
+              data-testid="button-filter-all"
+            >
+              Todos <span className="ml-1 opacity-80 text-[11px] font-mono">({stats.total})</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => { setServiceFilter("pool"); setLocalityFilter(null); }}
+              className={cn(
+                "shrink-0 px-3.5 py-1.5 rounded-full text-xs font-semibold active:scale-95 transition-all shadow-2xs inline-flex items-center gap-1.5",
+                serviceFilter === "pool"
+                  ? "bg-blue-600 text-white"
+                  : "bg-card text-muted-foreground hover:bg-muted border border-border/40"
+              )}
+              data-testid="button-filter-pool"
+            >
+              <Waves className="w-3.5 h-3.5" />
+              <span>Piscinas</span>
+              <span className="opacity-80 text-[11px] font-mono">({stats.pool})</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => { setServiceFilter("garden"); setLocalityFilter(null); }}
+              className={cn(
+                "shrink-0 px-3.5 py-1.5 rounded-full text-xs font-semibold active:scale-95 transition-all shadow-2xs inline-flex items-center gap-1.5",
+                serviceFilter === "garden"
+                  ? "bg-emerald-600 text-white"
+                  : "bg-card text-muted-foreground hover:bg-muted border border-border/40"
+              )}
+              data-testid="button-filter-garden"
+            >
+              <Leaf className="w-3.5 h-3.5" />
+              <span>Jardins</span>
+              <span className="opacity-80 text-[11px] font-mono">({stats.garden})</span>
+            </button>
+            {uniqueLocalities.map((loc) => (
+              <button
+                key={loc}
+                type="button"
+                onClick={() => setLocalityFilter(localityFilter === loc ? null : loc)}
+                className={cn(
+                  "shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold active:scale-95 transition-all shadow-2xs",
+                  localityFilter === loc
+                    ? "bg-secondary text-secondary-foreground"
+                    : "bg-card text-muted-foreground hover:bg-muted border border-border/40"
+                )}
+              >
+                {loc}
               </button>
             ))}
           </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button size="sm" variant="ghost" className="h-8 shrink-0" data-testid="button-sort" aria-label="Ordenar lista">
-                <ArrowUpDown className="w-3.5 h-3.5" aria-hidden="true" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel className="text-xs text-muted-foreground">Ordenar</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => handleDropdownSort("name")} data-testid="sort-name">
-                <span className="flex-1">Por Nome</span>
-                {sortBy === "name" && <span className="text-primary text-xs">{sortDir === "asc" ? "↑" : "↓"}</span>}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleDropdownSort("value")} data-testid="sort-value">
-                <span className="flex-1">Por Valor</span>
-                {sortBy === "value" && <span className="text-primary text-xs">{sortDir === "asc" ? "↑" : "↓"}</span>}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleDropdownSort("recent")} data-testid="sort-recent">
-                <span className="flex-1">Mais Recentes</span>
-                {sortBy === "recent" && <span className="text-primary text-xs">✓</span>}
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuLabel className="text-xs text-muted-foreground">Faturação</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => setBillingFilter("all")} data-testid="billing-all">
-                {billingFilter === "all" && <CheckCircle className="w-3 h-3 mr-2 text-primary" />}
-                {billingFilter !== "all" && <div className="w-3 h-3 mr-2" />}
-                Todos
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setBillingFilter("monthly")} data-testid="billing-monthly">
-                {billingFilter === "monthly" && <CheckCircle className="w-3 h-3 mr-2 text-primary" />}
-                {billingFilter !== "monthly" && <div className="w-3 h-3 mr-2" />}
-                <Calendar className="w-3.5 h-3.5 mr-2 text-muted-foreground" aria-hidden="true" />
-                Mensal
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setBillingFilter("hourly")} data-testid="billing-hourly">
-                {billingFilter === "hourly" && <CheckCircle className="w-3 h-3 mr-2 text-primary" />}
-                {billingFilter !== "hourly" && <div className="w-3 h-3 mr-2" />}
-                <Clock className="w-3.5 h-3.5 mr-2 text-muted-foreground" aria-hidden="true" />
-                Por Hora
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setBillingFilter("per_visit")} data-testid="billing-per-visit">
-                {billingFilter === "per_visit" && <CheckCircle className="w-3 h-3 mr-2 text-primary" />}
-                {billingFilter !== "per_visit" && <div className="w-3 h-3 mr-2" />}
-                <CalendarDays className="w-3.5 h-3.5 mr-2 text-muted-foreground" aria-hidden="true" />
-                Por Visita
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+
+          {/* Barra de Ordenação e Seletor de Modo (Lista vs Mapa) */}
+          <div className="flex items-center justify-between pt-1">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  className="flex items-center gap-1.5 text-xs font-bold text-foreground bg-card border border-border/40 px-3 py-1.5 rounded-xl active:scale-95 transition-transform shadow-2xs"
+                  data-testid="button-sort"
+                >
+                  <ArrowUpDown className="w-3.5 h-3.5 text-primary" />
+                  <span>{sortBy === "name" ? "Por Nome" : sortBy === "value" ? "Por Valor" : "Mais Recentes"}</span>
+                  <span className="text-[10px] text-muted-foreground ml-0.5">{sortDir === "asc" ? "↑" : "↓"}</span>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-48">
+                <DropdownMenuLabel className="text-xs text-muted-foreground">Ordenar Lista</DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => handleDropdownSort("name")} data-testid="sort-name">
+                  <span className="flex-1">Por Nome</span>
+                  {sortBy === "name" && <span className="text-primary text-xs">{sortDir === "asc" ? "A-Z" : "Z-A"}</span>}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleDropdownSort("value")} data-testid="sort-value">
+                  <span className="flex-1">Por Valor</span>
+                  {sortBy === "value" && <span className="text-primary text-xs">{sortDir === "asc" ? "Menor" : "Maior"}</span>}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleDropdownSort("recent")} data-testid="sort-recent">
+                  <span className="flex-1">Mais Recentes</span>
+                  {sortBy === "recent" && <span className="text-primary text-xs">✓</span>}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuLabel className="text-xs text-muted-foreground">Tipo de Faturação</DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => setBillingFilter("all")} data-testid="billing-all">
+                  {billingFilter === "all" && <CheckCircle className="w-3 h-3 mr-2 text-primary" />}
+                  {billingFilter !== "all" && <div className="w-3 h-3 mr-2" />}
+                  Todos os planos
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setBillingFilter("monthly")} data-testid="billing-monthly">
+                  {billingFilter === "monthly" && <CheckCircle className="w-3 h-3 mr-2 text-primary" />}
+                  {billingFilter !== "monthly" && <div className="w-3 h-3 mr-2" />}
+                  <Calendar className="w-3.5 h-3.5 mr-2 text-muted-foreground" aria-hidden="true" />
+                  Mensal
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setBillingFilter("hourly")} data-testid="billing-hourly">
+                  {billingFilter === "hourly" && <CheckCircle className="w-3 h-3 mr-2 text-primary" />}
+                  {billingFilter !== "hourly" && <div className="w-3 h-3 mr-2" />}
+                  <Clock className="w-3.5 h-3.5 mr-2 text-muted-foreground" aria-hidden="true" />
+                  Por Hora
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setBillingFilter("per_visit")} data-testid="billing-per-visit">
+                  {billingFilter === "per_visit" && <CheckCircle className="w-3 h-3 mr-2 text-primary" />}
+                  {billingFilter !== "per_visit" && <div className="w-3 h-3 mr-2" />}
+                  <CalendarDays className="w-3.5 h-3.5 mr-2 text-muted-foreground" aria-hidden="true" />
+                  Por Visita
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Alternador Lista / Mapa */}
+            <div className="inline-flex p-1 bg-muted/60 rounded-xl border border-border/40">
+              <span className="px-3 py-1 rounded-lg bg-card text-primary shadow-xs flex items-center gap-1.5 text-xs font-bold">
+                <ListIcon className="w-3.5 h-3.5" />
+                <span>Lista</span>
+              </span>
+              <Link
+                href="/clients/map"
+                className="px-3 py-1 rounded-lg text-muted-foreground hover:text-foreground flex items-center gap-1.5 text-xs font-bold active:scale-95 transition-all"
+              >
+                <MapIcon className="w-3.5 h-3.5" />
+                <span>Mapa</span>
+              </Link>
+            </div>
+          </div>
         </div>
 
-        {/* Client list */}
+        {/* Estatísticas Rápidas */}
+        <div className="grid grid-cols-4 gap-2">
+          <div className="bg-card rounded-2xl border border-border/40 p-2.5 sm:p-3 text-center shadow-xs">
+            <Users className="w-4 h-4 mx-auto mb-1 text-primary" aria-hidden="true" />
+            <p className="text-base sm:text-lg font-bold text-foreground" data-testid="text-total-clients">{stats.total}</p>
+            <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Total</p>
+          </div>
+          <div className="bg-card rounded-2xl border border-border/40 p-2.5 sm:p-3 text-center shadow-xs">
+            <Leaf className="w-4 h-4 mx-auto mb-1 text-emerald-600" aria-hidden="true" />
+            <p className="text-base sm:text-lg font-bold text-foreground">{stats.garden}</p>
+            <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Jardim</p>
+          </div>
+          <div className="bg-card rounded-2xl border border-border/40 p-2.5 sm:p-3 text-center shadow-xs">
+            <Waves className="w-4 h-4 mx-auto mb-1 text-blue-500" aria-hidden="true" />
+            <p className="text-base sm:text-lg font-bold text-foreground">{stats.pool}</p>
+            <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Piscina</p>
+          </div>
+          <div className="bg-card rounded-2xl border border-border/40 p-2.5 sm:p-3 text-center shadow-xs">
+            <Euro className="w-4 h-4 mx-auto mb-1 text-primary" aria-hidden="true" />
+            <p className="text-base sm:text-lg font-bold text-foreground">{stats.monthlyRevenue}€</p>
+            <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Mensal</p>
+          </div>
+        </div>
+
+        {/* Lista de Cartões de Clientes (Design Stitch) */}
         {isLoading ? (
-          <div className="flex justify-center py-10">
+          <div className="flex justify-center py-12">
             <Loader2 className="w-8 h-8 text-primary animate-spin" />
           </div>
         ) : paginatedClients.length > 0 ? (
           <>
-            <div className="space-y-3">
-              {paginatedClients.map((client, index) => {
+            <div className="space-y-3.5">
+              {paginatedClients.map((client) => {
                 const value = getClientValue(client);
                 const status = getClientStatus(client);
                 const thumbnail = getClientThumbnail(client);
                 const nv = nextVisits.get(client.id);
+                const mapsUrl = getMapsUrl(client);
+
                 return (
-                  <Link
+                  <article
                     key={client.id}
-                    href={`/clients/${client.id}`}
-                    className="mobile-card flex items-center gap-3 p-3"
-                    style={{ animationDelay: `${index * 0.05}s` }}
+                    className="bg-card rounded-2xl border border-border/40 shadow-xs hover:shadow-md transition-all overflow-hidden flex flex-col"
                     data-testid={`card-client-${client.id}`}
                   >
-                    {/* Thumbnail */}
-                    <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center shrink-0 overflow-hidden relative">
-                      <span className="text-sm font-bold text-primary">{getInitials(client.name)}</span>
-                      {thumbnail && (
+                    {/* Banner do Cartão com Imagem ou Gradiente Estilizado */}
+                    <div className="w-full h-32 sm:h-36 relative bg-muted overflow-hidden">
+                      {thumbnail ? (
                         <img
                           src={thumbnail}
                           alt=""
                           className="absolute inset-0 w-full h-full object-cover"
                           onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
                         />
+                      ) : (
+                        <div className="absolute inset-0 bg-gradient-to-br from-emerald-950/20 via-muted to-muted/80 flex items-center justify-center">
+                          <span className="text-3xl font-black text-primary/20 tracking-wider">
+                            {getInitials(client.name)}
+                          </span>
+                        </div>
                       )}
-                    </div>
 
-                    {/* Info */}
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-foreground truncate text-sm" data-testid={`text-client-name-${client.id}`}>
-                        {client.name}
-                      </h3>
-                      {(client.locality || client.address) && (
-                        <p className="text-[11px] text-muted-foreground flex items-center gap-1 mt-0.5 truncate">
-                          <MapPin className="w-3 h-3 shrink-0" />
-                          {client.locality || client.address}
-                        </p>
-                      )}
-                      <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-                        {client.hasGarden && (
-                          <span className="inline-flex items-center gap-0.5 text-[10px] font-medium text-green-700 bg-green-50 px-1.5 py-0 rounded-full">
-                            <Leaf className="w-2.5 h-2.5" />Jardim
-                          </span>
-                        )}
+                      {/* Gradiente escuro de legibilidade */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent pointer-events-none" />
+
+                      {/* Badges de topo: Ref e Plano */}
+                      <div className="absolute top-2.5 left-3 flex items-center gap-1.5 z-10">
+                        <span className="font-mono text-[11px] font-bold bg-black/60 backdrop-blur-md text-white px-2 py-0.5 rounded-full shadow-xs">
+                          #C-{client.id}
+                        </span>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary text-white shadow-xs">
+                          {client.billingType === "monthly" ? "Mensal" : client.billingType === "hourly" ? "Horário" : "Por Visita"}
+                        </span>
+                      </div>
+
+                      {/* Badge de estado no topo direito */}
+                      <div className="absolute top-2.5 right-3 z-10">
+                        <span className={cn("px-2.5 py-0.5 rounded-full text-[10px] font-bold shadow-xs", status.color)}>
+                          {status.label}
+                        </span>
+                      </div>
+
+                      {/* Badge de tipologia no canto inferior esquerdo */}
+                      <div className="absolute bottom-2.5 left-3 z-10 flex items-center gap-1">
                         {client.hasPool && (
-                          <span className="inline-flex items-center gap-0.5 text-[10px] font-medium text-blue-700 bg-blue-50 px-1.5 py-0 rounded-full">
-                            <Waves className="w-2.5 h-2.5" />Piscina
+                          <span className="inline-flex items-center gap-1 bg-card/90 backdrop-blur-md text-blue-700 dark:text-blue-300 text-[11px] font-bold px-2 py-0.5 rounded-lg shadow-xs">
+                            <Waves className="w-3 h-3" /> Piscina
                           </span>
                         )}
-                        {client.hasJacuzzi && (
-                          <span className="inline-flex items-center gap-0.5 text-[10px] font-medium text-muted-foreground bg-muted px-1.5 py-0 rounded-full">
-                            <ThermometerSun className="w-2.5 h-2.5" />Jacuzzi
+                        {client.hasGarden && (
+                          <span className="inline-flex items-center gap-1 bg-card/90 backdrop-blur-md text-emerald-700 dark:text-emerald-300 text-[11px] font-bold px-2 py-0.5 rounded-lg shadow-xs">
+                            <Leaf className="w-3 h-3" /> Jardim
                           </span>
                         )}
                       </div>
-                      {nv && !nv.isCompleted && (
-                        <p className="text-[10px] text-muted-foreground flex items-center gap-1 mt-1">
-                          <CalendarDays className="w-3 h-3 shrink-0" />
-                          {new Date(nv.date).toLocaleDateString("pt-PT")}
-                        </p>
+
+                      {/* Valor no canto inferior direito */}
+                      {value && (
+                        <div className="absolute bottom-2.5 right-3 z-10">
+                          <span className="font-mono font-bold text-xs text-white bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-lg shadow-xs">
+                            {value}
+                          </span>
+                        </div>
                       )}
                     </div>
 
-                    {/* Status + Value */}
-                    <div className="flex flex-col items-end gap-1.5 shrink-0">
-                      <span className={cn("text-[10px] font-semibold px-1.5 py-0.5 rounded-full whitespace-nowrap", status.color)}>
-                        {status.label}
-                      </span>
-                      {value && (
-                        <span className="text-[10px] font-bold text-primary whitespace-nowrap">{value}</span>
-                      )}
-                      <div className="flex items-center gap-0.5">
+                    {/* Conteúdo do Cartão */}
+                    <div className="p-3.5 sm:p-4 flex flex-col gap-2.5">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <Link href={`/clients/${client.id}`}>
+                            <h3
+                              className="font-bold text-foreground text-base truncate hover:text-primary transition-colors cursor-pointer"
+                              data-testid={`text-client-name-${client.id}`}
+                            >
+                              {client.name}
+                            </h3>
+                          </Link>
+                          {(client.locality || client.address) && (
+                            <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-0.5 truncate">
+                              <MapPin className="w-3.5 h-3.5 text-primary shrink-0" />
+                              <span className="truncate">{client.locality || client.address}</span>
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Botão de eliminar subtil */}
                         <Button
                           size="sm"
                           variant="ghost"
-                          className="h-6 w-6 p-0 text-muted-foreground/40 hover:text-destructive"
-                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); setDeleteDialogClient(client); deleteTargetRef.current = client.id; }}
+                          className="h-8 w-8 p-0 text-muted-foreground/40 hover:text-destructive active:scale-90"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setDeleteDialogClient(client);
+                            deleteTargetRef.current = client.id;
+                          }}
                           data-testid={`button-delete-${client.id}`}
                           aria-label="Eliminar cliente"
                         >
-                          <Trash2 className="w-3 h-3" />
+                          <Trash2 className="w-3.5 h-3.5" />
                         </Button>
-                        <ChevronRight className="w-4 h-4 text-muted-foreground/30" />
+                      </div>
+
+                      {/* Informação da próxima visita se existir */}
+                      {nv && !nv.isCompleted && (
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/30 p-2 rounded-xl border border-border/30">
+                          <CalendarDays className="w-3.5 h-3.5 text-primary shrink-0" />
+                          <span>Próxima visita: <strong>{new Date(nv.date).toLocaleDateString("pt-PT")}</strong></span>
+                          <span className="text-[10px] text-muted-foreground ml-auto">({nv.type})</span>
+                        </div>
+                      )}
+
+                      {/* Ações Ergonómicas de Campo (44px min-height) */}
+                      <div className="flex items-center gap-2 pt-1 border-t border-border/30">
+                        {client.phone ? (
+                          <a
+                            href={`tel:${client.phone}`}
+                            className="flex-1 min-h-[44px] px-3 rounded-xl bg-muted/60 hover:bg-muted text-foreground flex items-center justify-center gap-1.5 text-xs font-semibold active:scale-95 transition-transform border border-border/40"
+                            aria-label={`Ligar para ${client.name}`}
+                          >
+                            <Phone className="w-3.5 h-3.5 text-primary" />
+                            <span>Ligar</span>
+                          </a>
+                        ) : null}
+
+                        <a
+                          href={mapsUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex-1 min-h-[44px] px-3 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 hover:bg-blue-100 flex items-center justify-center gap-1.5 text-xs font-semibold active:scale-95 transition-transform border border-blue-200/50"
+                          aria-label={`GPS para ${client.name}`}
+                        >
+                          <Navigation className="w-3.5 h-3.5" />
+                          <span>GPS</span>
+                        </a>
+
+                        <Link
+                          href={`/clients/${client.id}`}
+                          className="flex-1 min-h-[44px] px-3 rounded-xl bg-primary text-primary-foreground hover:bg-primary/95 flex items-center justify-center gap-1.5 text-xs font-semibold active:scale-95 transition-transform shadow-2xs"
+                        >
+                          <span>Ficha</span>
+                          <ChevronRight className="w-3.5 h-3.5" />
+                        </Link>
                       </div>
                     </div>
-                  </Link>
+                  </article>
                 );
               })}
             </div>
 
-            {/* Pagination */}
+            {/* Paginação */}
             {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-2 pt-2">
+              <div className="flex items-center justify-center gap-2 pt-4 pb-2">
                 <Button
                   size="sm"
                   variant="ghost"
-                  className="h-8"
+                  className="h-8 rounded-lg"
                   disabled={page <= 1}
                   onClick={() => setPage(1)}
                   aria-label="Primeira página"
@@ -427,9 +614,9 @@ export default function Clients() {
                 <Button
                   size="sm"
                   variant="ghost"
-                  className="h-8"
+                  className="h-8 rounded-lg"
                   disabled={page <= 1}
-                  onClick={() => setPage(p => p - 1)}
+                  onClick={() => setPage((p) => p - 1)}
                   aria-label="Página anterior"
                 >
                   <ChevronLeft className="w-4 h-4" />
@@ -440,9 +627,9 @@ export default function Clients() {
                 <Button
                   size="sm"
                   variant="ghost"
-                  className="h-8"
+                  className="h-8 rounded-lg"
                   disabled={page >= totalPages}
-                  onClick={() => setPage(p => p + 1)}
+                  onClick={() => setPage((p) => p + 1)}
                   aria-label="Página seguinte"
                 >
                   <ChevronRight className="w-4 h-4" />
@@ -450,7 +637,7 @@ export default function Clients() {
                 <Button
                   size="sm"
                   variant="ghost"
-                  className="h-8"
+                  className="h-8 rounded-lg"
                   disabled={page >= totalPages}
                   onClick={() => setPage(totalPages)}
                   aria-label="Última página"
@@ -461,41 +648,41 @@ export default function Clients() {
             )}
           </>
         ) : (
-          <div className="empty-state bg-card rounded-2xl border border-border/30">
-            <div className="empty-state-icon bg-primary/5">
-              {search || serviceFilter !== "all" ? (
-                <Search className="w-7 h-7 text-primary/60" />
+          <div className="empty-state bg-card rounded-2xl border border-border/40 p-8 text-center">
+            <div className="empty-state-icon bg-primary/10 w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-3">
+              {search || serviceFilter !== "all" || localityFilter ? (
+                <Search className="w-6 h-6 text-primary" />
               ) : (
-                <Users className="w-7 h-7 text-primary/60" />
+                <Users className="w-6 h-6 text-primary" />
               )}
             </div>
-            <h3 className="font-semibold text-foreground">
-              {search || serviceFilter !== "all" ? "Nenhum cliente encontrado" : "Sem clientes"}
+            <h3 className="font-bold text-foreground text-base">
+              {search || serviceFilter !== "all" || localityFilter ? "Nenhum cliente encontrado" : "Sem clientes registados"}
             </h3>
-            <p className="text-sm text-muted-foreground mt-1">
-              {search || serviceFilter !== "all"
-                ? "Tente ajustar os filtros ou a pesquisa."
-                : "Adicione o seu primeiro cliente para começar!"}
+            <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
+              {search || serviceFilter !== "all" || localityFilter
+                ? "Tente ajustar os filtros ou pesquisar por outro termo."
+                : "Adicione o primeiro cliente com o botão abaixo para começar a rota e agendamentos!"}
             </p>
           </div>
         )}
       </div>
 
-      {/* Delete confirmation */}
+      {/* Confirmação de Eliminação */}
       <AlertDialog open={!!deleteDialogClient} onOpenChange={(open) => { if (!open) { setDeleteDialogClient(null); deleteTargetRef.current = null; } }}>
-        <AlertDialogContent>
+        <AlertDialogContent className="rounded-2xl">
           <AlertDialogHeader>
             <AlertDialogTitle>Eliminar cliente</AlertDialogTitle>
             <AlertDialogDescription>
               Tem a certeza que deseja eliminar <strong>{deleteDialogClient?.name}</strong>?
-              Esta ação é irreversível e removerá todos os dados associados.
+              Esta ação é irreversível e removerá todos os dados e serviços associados.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleteClient.isPending}>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleteClient.isPending} className="rounded-xl">Cancelar</AlertDialogCancel>
             <Button
               disabled={deleteClient.isPending}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl"
               onClick={() => {
                 const id = deleteTargetRef.current;
                 if (id !== null) {
@@ -515,6 +702,7 @@ export default function Clients() {
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* Botão Flutuante (FAB) para Adicionar Cliente */}
       <div className="fixed bottom-[88px] right-4 z-50">
         <Tooltip>
           <TooltipTrigger asChild>
