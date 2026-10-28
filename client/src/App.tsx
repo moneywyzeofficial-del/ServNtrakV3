@@ -5,43 +5,54 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import { SplashScreen } from "@/components/SplashScreen";
 import AssistantChat from "@/components/AssistantChat";
 import { OfflineIndicator } from "@/components/OfflineIndicator";
 import { QuickCreateButton } from "@/components/QuickCreateButton";
 
+// Eager load critical initial screen
 import Home from "@/pages/Home";
-import Login from "@/pages/Login";
-import Clients from "@/pages/Clients";
-import ClientDetail from "@/pages/ClientDetail";
-import ClientDocumentsPage from "@/pages/ClientDocuments";
-import CalendarPage from "@/pages/Calendar";
-import ClientsMap from "@/pages/ClientsMap";
-import Weather from "@/pages/Weather";
-import Reminders from "@/pages/Reminders";
-import Billing from "@/pages/Billing";
-import Profile from "@/pages/Profile";
-import Purchases from "@/pages/Purchases";
-import Reports from "@/pages/Reports";
-import ClientProfitability from "@/pages/ClientProfitability";
-import Payments from "@/pages/Payments";
-import Logos from "@/pages/Logos";
-import Gallery from "@/pages/Gallery";
-import Finances from "@/pages/Finances";
-import Exports from "@/pages/Exports";
-import Employees from "@/pages/Employees";
-import PendingTasks from "@/pages/PendingTasks";
-import ExpenseNotes from "@/pages/ExpenseNotes";
-import ExpenseNoteNew from "@/pages/ExpenseNoteNew";
-import ExpenseNoteDetail from "@/pages/ExpenseNoteDetail";
-import Quotes from "@/pages/Quotes";
-import QuoteNew from "@/pages/QuoteNew";
-import QuoteDetail from "@/pages/QuoteDetail";
-import ProductPrices from "@/pages/ProductPrices";
-import ShoppingList from "@/pages/ShoppingList";
-import More from "@/pages/More";
-import NotFound from "@/pages/not-found";
+
+// Lazy load secondary routes for fast initial bundle and optimal mobile performance
+const Login = lazy(() => import("@/pages/Login"));
+const Clients = lazy(() => import("@/pages/Clients"));
+const ClientDetail = lazy(() => import("@/pages/ClientDetail"));
+const ClientDocumentsPage = lazy(() => import("@/pages/ClientDocuments"));
+const CalendarPage = lazy(() => import("@/pages/Calendar"));
+const ClientsMap = lazy(() => import("@/pages/ClientsMap"));
+const Weather = lazy(() => import("@/pages/Weather"));
+const Reminders = lazy(() => import("@/pages/Reminders"));
+const Billing = lazy(() => import("@/pages/Billing"));
+const Profile = lazy(() => import("@/pages/Profile"));
+const Purchases = lazy(() => import("@/pages/Purchases"));
+const Reports = lazy(() => import("@/pages/Reports"));
+const ClientProfitability = lazy(() => import("@/pages/ClientProfitability"));
+const Payments = lazy(() => import("@/pages/Payments"));
+const Logos = lazy(() => import("@/pages/Logos"));
+const Gallery = lazy(() => import("@/pages/Gallery"));
+const Finances = lazy(() => import("@/pages/Finances"));
+const Exports = lazy(() => import("@/pages/Exports"));
+const Employees = lazy(() => import("@/pages/Employees"));
+const PendingTasks = lazy(() => import("@/pages/PendingTasks"));
+const ExpenseNotes = lazy(() => import("@/pages/ExpenseNotes"));
+const ExpenseNoteNew = lazy(() => import("@/pages/ExpenseNoteNew"));
+const ExpenseNoteDetail = lazy(() => import("@/pages/ExpenseNoteDetail"));
+const Quotes = lazy(() => import("@/pages/Quotes"));
+const QuoteNew = lazy(() => import("@/pages/QuoteNew"));
+const QuoteDetail = lazy(() => import("@/pages/QuoteDetail"));
+const ProductPrices = lazy(() => import("@/pages/ProductPrices"));
+const ShoppingList = lazy(() => import("@/pages/ShoppingList"));
+const More = lazy(() => import("@/pages/More"));
+const NotFound = lazy(() => import("@/pages/not-found"));
+
+function PageFallback() {
+  return (
+    <div className="flex items-center justify-center min-h-[60vh]">
+      <Loader2 className="w-8 h-8 text-primary animate-spin" />
+    </div>
+  );
+}
 
 function Router() {
   const { user, isLoading } = useAuth();
@@ -58,42 +69,43 @@ function Router() {
       </div>
     );
   }
-  // Login desativado a pedido: acesso direto ao dashboard
 
   return (
     <>
-      <Switch>
-        <Route path="/" component={Home} />
-        <Route path="/clients" component={Clients} />
-        <Route path="/clients/:id/documents" component={ClientDocumentsPage} />
-        <Route path="/clients/:id" component={ClientDetail} />
-        <Route path="/map" component={ClientsMap} />
-        <Route path="/weather" component={Weather} />
-        <Route path="/calendar" component={CalendarPage} />
-        <Route path="/reminders" component={Reminders} />
-        <Route path="/billing" component={Billing} />
-        <Route path="/purchases" component={Purchases} />
-        <Route path="/reports" component={Reports} />
-        <Route path="/profitability" component={ClientProfitability} />
-        <Route path="/payments" component={Payments} />
-        <Route path="/profile" component={Profile} />
-        <Route path="/logos" component={Logos} />
-        <Route path="/gallery" component={Gallery} />
-        <Route path="/finances" component={Finances} />
-        <Route path="/exports" component={Exports} />
-        <Route path="/employees" component={Employees} />
-        <Route path="/pending-tasks" component={PendingTasks} />
-        <Route path="/expense-notes" component={ExpenseNotes} />
-        <Route path="/expense-notes/new" component={ExpenseNoteNew} />
-        <Route path="/expense-notes/:id" component={ExpenseNoteDetail} />
-        <Route path="/quotes" component={Quotes} />
-        <Route path="/quotes/new" component={QuoteNew} />
-        <Route path="/quotes/:id" component={QuoteDetail} />
-        <Route path="/product-prices" component={ProductPrices} />
-        <Route path="/lista-compras" component={ShoppingList} />
-        <Route path="/more" component={More} />
-        <Route component={NotFound} />
-      </Switch>
+      <Suspense fallback={<PageFallback />}>
+        <Switch>
+          <Route path="/" component={Home} />
+          <Route path="/clients" component={Clients} />
+          <Route path="/clients/:id/documents" component={ClientDocumentsPage} />
+          <Route path="/clients/:id" component={ClientDetail} />
+          <Route path="/map" component={ClientsMap} />
+          <Route path="/weather" component={Weather} />
+          <Route path="/calendar" component={CalendarPage} />
+          <Route path="/reminders" component={Reminders} />
+          <Route path="/billing" component={Billing} />
+          <Route path="/purchases" component={Purchases} />
+          <Route path="/reports" component={Reports} />
+          <Route path="/profitability" component={ClientProfitability} />
+          <Route path="/payments" component={Payments} />
+          <Route path="/profile" component={Profile} />
+          <Route path="/logos" component={Logos} />
+          <Route path="/gallery" component={Gallery} />
+          <Route path="/finances" component={Finances} />
+          <Route path="/exports" component={Exports} />
+          <Route path="/employees" component={Employees} />
+          <Route path="/pending-tasks" component={PendingTasks} />
+          <Route path="/expense-notes" component={ExpenseNotes} />
+          <Route path="/expense-notes/new" component={ExpenseNoteNew} />
+          <Route path="/expense-notes/:id" component={ExpenseNoteDetail} />
+          <Route path="/quotes" component={Quotes} />
+          <Route path="/quotes/new" component={QuoteNew} />
+          <Route path="/quotes/:id" component={QuoteDetail} />
+          <Route path="/product-prices" component={ProductPrices} />
+          <Route path="/lista-compras" component={ShoppingList} />
+          <Route path="/more" component={More} />
+          <Route component={NotFound} />
+        </Switch>
+      </Suspense>
       <OfflineIndicator />
       <QuickCreateButton />
       <AssistantChat />

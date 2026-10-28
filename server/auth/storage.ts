@@ -1,5 +1,5 @@
 import { users, webauthnCredentials, type User, type UpsertUser, type WebAuthnCredential } from "@shared/models/auth";
-import { db } from "../../db";
+import { db } from "../db";
 import { and, eq, or } from "drizzle-orm";
 
 export interface IAuthStorage {

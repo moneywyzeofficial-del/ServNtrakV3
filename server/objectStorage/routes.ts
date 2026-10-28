@@ -2,9 +2,9 @@ import type { Express, Request, Response, NextFunction } from "express";
 import { z } from "zod";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { ObjectPermission, getObjectAclPolicy } from "./objectAcl";
-import { storage } from "../../storage";
-import { S3StorageService } from "../../lib/s3Storage";
-import { LocalStorageService } from "../../lib/localStorage";
+import { storage } from "../storage";
+import { S3StorageService } from "../lib/s3Storage";
+import { LocalStorageService } from "../lib/localStorage";
 
 type StorageService = ObjectStorageService | S3StorageService | LocalStorageService;
 

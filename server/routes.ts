@@ -1,7 +1,8 @@
 import type { Express } from "express";
 import type { Server } from "http";
-import { setupAuth, registerAuthRoutes } from "./replit_integrations/auth";
-import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
+import { setupAuth, registerAuthRoutes } from "./auth";
+import { registerObjectStorageRoutes } from "./objectStorage";
+import { pool } from "./db";
 import { getStorageService } from "./lib/storageProvider";
 
 import { registerClientsRoutes } from "./routes/clients";
@@ -31,6 +32,15 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  app.get("/api/health", async (_req, res) => {
+    try {
+      await pool.query("SELECT 1");
+      res.json({ status: "healthy", database: "connected", timestamp: new Date().toISOString() });
+    } catch (err: any) {
+      res.status(503).json({ status: "unhealthy", database: "disconnected", error: err?.message });
+    }
+  });
+
   await setupAuth(app);
   registerAuthRoutes(app);
   registerObjectStorageRoutes(app, getStorageService());

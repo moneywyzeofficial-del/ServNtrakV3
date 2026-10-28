@@ -8,7 +8,7 @@ import { startVisitChecker } from "./visitChecker";
 import { pool } from "./db";
 import path from "path";
 import fs from "fs";
-import { ObjectStorageService } from "./replit_integrations/object_storage/objectStorage";
+import { ObjectStorageService } from "./objectStorage/objectStorage";
 import { isS3Configured } from "./lib/s3Storage";
 import { isLocalStorageConfigured } from "./lib/localStorage";
 import { getStorageService } from "./lib/storageProvider";

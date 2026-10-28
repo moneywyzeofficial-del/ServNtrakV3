@@ -20,7 +20,7 @@
     "paths": {
       "@/*": ["./client/src/*"],
       "@shared/*": ["./shared/*"],
-      "@assets/*": ["./attached_assets/*"]
+      "@assets/*": ["./client/src/assets/*"]
     }
   }
 }

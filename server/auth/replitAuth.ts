@@ -8,10 +8,10 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { authStorage } from "./storage";
 import { z } from "zod";
-import { db } from "../../db";
+import { db } from "../db";
 import { passwordResetTokens, emailVerificationTokens } from "@shared/schema";
 import { eq, and, gt } from "drizzle-orm";
-import { sendPasswordResetEmail, sendEmailVerificationEmail } from "../../email";
+import { sendPasswordResetEmail, sendEmailVerificationEmail } from "../email";
 import {
   generateRegistrationOptions,
   verifyRegistrationResponse,

@@ -5,6 +5,8 @@ import { relations } from "drizzle-orm";
 import { users } from "./models/auth";
 
 export * from "./models/auth";
+export * from "./models/tokens";
+export * from "./models/push";
 export * from "./models/chat";
 
 // === TABLE DEFINITIONS ===
@@ -846,64 +848,6 @@ export type InsertSuggestedWork = z.infer<typeof insertSuggestedWorkSchema>;
 export type SuggestedWorkWithClient = SuggestedWork & {
   client: Client;
 };
-
-// Email Verification Tokens
-export const emailVerificationTokens = pgTable("email_verification_tokens", {
-  id: serial("id").primaryKey(),
-  userId: text("user_id").notNull(),
-  token: text("token").notNull().unique(),
-  expiresAt: timestamp("expires_at").notNull(),
-  usedAt: timestamp("used_at"),
-  createdAt: timestamp("created_at").defaultNow(),
-});
-
-export type EmailVerificationToken = typeof emailVerificationTokens.$inferSelect;
-
-// Password Reset Tokens
-export const passwordResetTokens = pgTable("password_reset_tokens", {
-  id: serial("id").primaryKey(),
-  userId: text("user_id").notNull(),
-  token: text("token").notNull().unique(),
-  expiresAt: timestamp("expires_at").notNull(),
-  usedAt: timestamp("used_at"),
-  createdAt: timestamp("created_at").defaultNow(),
-});
-
-export const passwordResetTokensRelations = relations(passwordResetTokens, ({ one }) => ({
-  user: one(users, {
-    fields: [passwordResetTokens.userId],
-    references: [users.id],
-  }),
-}));
-
-export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
-
-// Push Subscriptions
-export const pushSubscriptions = pgTable("push_subscriptions", {
-  id: serial("id").primaryKey(),
-  userId: text("user_id").notNull(),
-  endpoint: text("endpoint").notNull().unique(),
-  p256dh: text("p256dh").notNull(),
-  auth: text("auth").notNull(),
-  deviceInfo: text("device_info"),
-  createdAt: timestamp("created_at").defaultNow(),
-});
-
-export type PushSubscription = typeof pushSubscriptions.$inferSelect;
-
-// Push send events history (success + failure) — used to keep diagnostics
-// across server restarts so the health panel can reflect real recent activity.
-export const pushSendEvents = pgTable("push_send_events", {
-  id: serial("id").primaryKey(),
-  at: timestamp("at").notNull().defaultNow(),
-  status: text("status").notNull(), // 'success' | 'failure'
-  kind: text("kind"), // 'auth' | 'gone' | 'other' (null for success)
-  statusCode: integer("status_code"),
-  endpointPreview: text("endpoint_preview").notNull(),
-  message: text("message"),
-});
-
-export type PushSendEvent = typeof pushSendEvents.$inferSelect;
 
 export type AppointmentPreview = {
   clientId: number;

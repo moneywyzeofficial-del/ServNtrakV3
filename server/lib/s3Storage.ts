@@ -2,8 +2,8 @@ import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } fro
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { Response } from "express";
 import { randomUUID } from "crypto";
-import { ObjectNotFoundError } from "../replit_integrations/object_storage/objectStorage";
-import { sanitizeServedContentType, buildSafeFilename } from "../replit_integrations/object_storage/objectStorage";
+import { ObjectNotFoundError } from "../objectStorage/objectStorage";
+import { sanitizeServedContentType, buildSafeFilename } from "../objectStorage/objectStorage";
 
 const PORTUGUESE_MONTH_ABBRS = [
   "Jan", "Fev", "Mar", "Abr", "Mai", "Jun",

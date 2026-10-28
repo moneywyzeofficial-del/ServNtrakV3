@@ -1,4 +1,4 @@
-import { ObjectStorageService } from "../replit_integrations/object_storage/objectStorage";
+import { ObjectStorageService } from "../objectStorage/objectStorage";
 import { S3StorageService, isS3Configured } from "./s3Storage";
 import { LocalStorageService, isLocalStorageConfigured } from "./localStorage";
 

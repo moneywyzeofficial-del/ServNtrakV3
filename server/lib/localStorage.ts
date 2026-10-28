@@ -2,8 +2,8 @@ import fs from "fs";
 import path from "path";
 import { Response } from "express";
 import { randomUUID } from "crypto";
-import { ObjectNotFoundError } from "../replit_integrations/object_storage/objectStorage";
-import { sanitizeServedContentType, buildSafeFilename } from "../replit_integrations/object_storage/objectStorage";
+import { ObjectNotFoundError } from "../objectStorage/objectStorage";
+import { sanitizeServedContentType, buildSafeFilename } from "../objectStorage/objectStorage";
 
 const PORTUGUESE_MONTH_ABBRS = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
 
